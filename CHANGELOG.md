@@ -1,5 +1,54 @@
 ## Changelog
 
+### 3.4.9 (Unreleased)
+
+#### New Resource - Notification Service API Integration
+
+- **Added `cidaas_notification_template_type` resource**: New resource for managing template types using the notification-srv API
+  - **Create/Update**: `POST /templatetypes` (upsert - creates if ID doesn't exist, updates if it does)
+  - **Update**: `PUT /templatetypes/:id` (full update)
+  - **Patch**: `PATCH /templatetypes/:id` (partial update, e.g., for custom_attributes on system template types)
+  - **Get**: `GET /templatetypes/:id`
+  - **Delete**: `DELETE /templatetypes/:id`
+  - Uses the modern notification-srv API instead of legacy APIs
+  - Supports system template types (read-only, only custom_attributes can be modified via PATCH)
+  - Supports custom template types (full CRUD)
+  - API base: `notification-srv`
+
+#### Usage
+
+**System Template Type** (pre-provisioned, only custom_attributes can be modified):
+```hcl
+resource "cidaas_notification_template_type" "verify_user" {
+  template_key = "VERIFY_USER"  # System template type
+  
+  custom_attributes = {
+    "company_name" = "required"
+    "support_email" = "allowed"
+  }
+}
+```
+
+**Custom Template Type** (fully manageable):
+```hcl
+resource "cidaas_notification_template_type" "custom_notification" {
+  template_key   = "CUSTOM_NOTIFICATION"
+  category       = "custom"
+  description    = "Custom notification template type"
+  
+  communication_methods = ["EMAIL", "SMS"]
+  processing_types      = ["CODE", "LINK"]
+  
+  system_attributes = {
+    "code" = "required"
+  }
+  
+  custom_attributes = {
+    "company_name" = "allowed"
+  }
+}
+```
+
 ### 3.4.7
 
 ### Enhancements & Bug Fixes

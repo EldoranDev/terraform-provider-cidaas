@@ -22,9 +22,11 @@ type Client struct {
 	Webhook        WebhookService
 	App            AppService
 	RegField       RegFieldService
-	TemplateGroup  TemplateGroupService
-	Template       TemplateService
-	PasswordPolicy PasswordPolicyService
+	TemplateGroup            TemplateGroupService
+	Template                 TemplateService
+	TemplateType             TemplateTypeService
+	NotificationTemplateType TemplateTypeService
+	PasswordPolicy           PasswordPolicyService
 	Consent        ConsentService
 	ConsentVersion ConsentVersionService
 }
@@ -74,10 +76,12 @@ func NewClient(config ClientConfig) (*Client, error) {
 		Webhook:        NewWebhook(config),
 		App:            NewApp(config),
 		RegField:       NewRegField(config),
-		TemplateGroup:  NewTemplateGroup(config),
-		Template:       NewTemplate(config),
-		SocialProvider: NewSocialProvider(config),
-		PasswordPolicy: NewPasswordPolicy(config),
+		TemplateGroup:            NewTemplateGroup(config),
+		Template:                 NewTemplate(config),
+		TemplateType:             NewTemplateType(config),
+		NotificationTemplateType: NewTemplateType(config),
+		SocialProvider:           NewSocialProvider(config),
+		PasswordPolicy:           NewPasswordPolicy(config),
 		ConsentGroup:   NewConsentGroup(config),
 		Consent:        NewConsent(config),
 		ConsentVersion: NewConsentVersion(config),

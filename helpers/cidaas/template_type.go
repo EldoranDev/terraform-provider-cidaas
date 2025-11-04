@@ -1,0 +1,159 @@
+package cidaas
+
+import (
+	"encoding/json"
+	"fmt"
+	"io"
+	"net/http"
+	"strings"
+
+	"github.com/Cidaas/terraform-provider-cidaas/helpers/util"
+)
+
+type TemplateTypeModel struct {
+	ID                   string            `json:"_id,omitempty"`
+	Category             string            `json:"category,omitempty"`
+	Owner                string            `json:"owner,omitempty"`
+	Description          string            `json:"description,omitempty"`
+	Deactivatable        bool              `json:"deactivatable,omitempty"`
+	SystemAttributes     map[string]string `json:"systemAttributes,omitempty"`
+	CustomAttributes     map[string]string `json:"customAttributes,omitempty"`
+	ContextAttributes    map[string]string `json:"contextAttributes,omitempty"`
+	ProcessingTypes      []string          `json:"processingTypes,omitempty"`
+	UsageTypes           []string          `json:"usageTypes,omitempty"`
+	VerificationTypes    []string          `json:"verificationTypes,omitempty"`
+	CommunicationMethods []string          `json:"communicationMethods,omitempty"`
+	TemplateGroupIDs     []string          `json:"templateGroupIds,omitempty"`
+	MsgFormats           []string          `json:"msgFormats,omitempty"`
+	CreatedTime          string            `json:"createdTime,omitempty"`
+	UpdatedTime          string            `json:"updatedTime,omitempty"`
+}
+
+type TemplateTypePatchModel struct {
+	ID               string             `json:"_id,omitempty"`
+	CustomAttributes *map[string]string `json:"customAttributes,omitempty"`
+}
+
+type TemplateTypeResponse struct {
+	Success bool             `json:"success,omitempty"`
+	Status  int              `json:"status,omitempty"`
+	Data    TemplateTypeModel `json:"data,omitempty"`
+}
+
+var _ TemplateTypeService = &TemplateTypeServiceImpl{}
+
+type TemplateTypeServiceImpl struct {
+	ClientConfig
+}
+
+type TemplateTypeService interface {
+	Upsert(templateType TemplateTypeModel) (*TemplateTypeResponse, error)
+	Get(id string) (*TemplateTypeResponse, error)
+	Patch(patch TemplateTypePatchModel) (*TemplateTypeResponse, error)
+	Delete(id string) error
+}
+
+func NewTemplateType(clientConfig ClientConfig) TemplateTypeService {
+	return &TemplateTypeServiceImpl{clientConfig}
+}
+
+func (t *TemplateTypeServiceImpl) Upsert(templateType TemplateTypeModel) (*TemplateTypeResponse, error) {
+	var response TemplateTypeResponse
+	url := fmt.Sprintf("%s/templatetypes", t.BaseURL)
+	httpClient := util.NewHTTPClient(url, http.MethodPost, t.AccessToken)
+
+	res, err := httpClient.MakeRequest(templateType)
+	if err = util.HandleResponseError(res, err); err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+
+	bodyBytes, err := io.ReadAll(res.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read template type response body: %w", err)
+	}
+	bodyString := string(bodyBytes)
+	if bodyString == "" {
+		return nil, fmt.Errorf("response code %d with empty response body", res.StatusCode)
+	}
+
+	err = json.Unmarshal(bodyBytes, &response)
+	if err != nil {
+		return nil, fmt.Errorf("failed to unmarshal json body %s, status code %d, error %s", bodyString, res.StatusCode, err.Error())
+	}
+	return &response, nil
+}
+
+func (t *TemplateTypeServiceImpl) Get(id string) (*TemplateTypeResponse, error) {
+	var response TemplateTypeResponse
+	id = strings.ToUpper(id)
+	url := fmt.Sprintf("%s/templatetypes/%s", t.BaseURL, id)
+	httpClient := util.NewHTTPClient(url, http.MethodGet, t.AccessToken)
+
+	res, err := httpClient.MakeRequest(nil)
+	if err = util.HandleResponseError(res, err); err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+
+	if res.StatusCode == http.StatusNotFound {
+		return nil, fmt.Errorf("template type not found with id %s", id)
+	}
+
+	bodyBytes, err := io.ReadAll(res.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read template type response body: %w", err)
+	}
+	bodyString := string(bodyBytes)
+	if bodyString == "" {
+		return nil, fmt.Errorf("response code %d with empty response body", res.StatusCode)
+	}
+
+	err = json.Unmarshal(bodyBytes, &response)
+	if err != nil {
+		return nil, fmt.Errorf("failed to unmarshal json body %s, status code %d, error %s", bodyString, res.StatusCode, err.Error())
+	}
+	return &response, nil
+}
+
+func (t *TemplateTypeServiceImpl) Patch(patch TemplateTypePatchModel) (*TemplateTypeResponse, error) {
+	var response TemplateTypeResponse
+	id := strings.ToUpper(patch.ID)
+	url := fmt.Sprintf("%s/templatetypes/%s", t.BaseURL, id)
+	httpClient := util.NewHTTPClient(url, http.MethodPatch, t.AccessToken)
+
+	res, err := httpClient.MakeRequest(patch)
+	if err = util.HandleResponseError(res, err); err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+
+	bodyBytes, err := io.ReadAll(res.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read template type response body: %w", err)
+	}
+	bodyString := string(bodyBytes)
+	if bodyString == "" {
+		return nil, fmt.Errorf("response code %d with empty response body", res.StatusCode)
+	}
+
+	err = json.Unmarshal(bodyBytes, &response)
+	if err != nil {
+		return nil, fmt.Errorf("failed to unmarshal json body %s, status code %d, error %s", bodyString, res.StatusCode, err.Error())
+	}
+	return &response, nil
+}
+
+func (t *TemplateTypeServiceImpl) Delete(id string) error {
+	id = strings.ToUpper(id)
+	url := fmt.Sprintf("%s/templatetypes/%s", t.BaseURL, id)
+	httpClient := util.NewHTTPClient(url, http.MethodDelete, t.AccessToken)
+
+	res, err := httpClient.MakeRequest(nil)
+	if err = util.HandleResponseError(res, err); err != nil {
+		return err
+	}
+	defer res.Body.Close()
+	return nil
+}
+
