@@ -67,7 +67,7 @@ import (
 // 							from_name  = "Kube-dev"
 // 							reply_to   = "noreply@cidaas.de"
 // 							sender_names = [
-// 								"SYSTEM",
+// 								"System",
 // 							]
 // 						}
 // 					}
