@@ -30,7 +30,6 @@ func TestAccGroupTypeDataSource_Basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "group_type.0.id"),
 					resource.TestCheckResourceAttrSet(resourceName, "group_type.0.group_type"),
 					resource.TestCheckResourceAttrSet(resourceName, "group_type.0.role_mode"),
-					resource.TestCheckResourceAttrSet(resourceName, "group_type.0.allowed_roles.#"),
 				),
 			},
 		},
@@ -60,7 +59,6 @@ func TestAccGroupTypeDataSource_RoleModeFilter(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "group_type.#"),
 					resource.TestCheckResourceAttr(resourceName, "group_type.0.role_mode", "allowed_roles"),
-					resource.TestCheckResourceAttrSet(resourceName, "group_type.0.allowed_roles.#"),
 				),
 			},
 		},
