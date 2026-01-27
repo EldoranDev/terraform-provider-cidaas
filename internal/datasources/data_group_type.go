@@ -139,6 +139,7 @@ func listGroupTypes(ctx context.Context, client *cidaas.Client) ([]any, error) {
 }
 
 func parseGroupTypes(groupType cidaas.GroupTypeData) (result GroupType) {
+	fmt.Printf("DEBUG: GroupType data: %+v\n", groupType)
 	result.ID = types.StringValue(groupType.ID)
 	result.RoleMode = types.StringValue(groupType.RoleMode)
 	result.GroupType = types.StringValue(groupType.GroupType)
