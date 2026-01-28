@@ -39,22 +39,22 @@ resource "cidaas_template_group" "sample-tg-2" {
     from_name  = "Kube-dev"
     reply_to   = "noreply@cidaas.de"
     sender_names = [
-      "SYSTEM",
+      "System",
     ]
   }
   ivr_sender_config = {
     sender_names = [
-      "SYSTEM",
+      "System",
     ]
   }
   push_sender_config = {
     sender_names = [
-      "SYSTEM",
+      "System",
     ]
   }
   sms_sender_config = {
     sender_names = [
-      "SYSTEM",
+      "System",
     ]
   }
 }
