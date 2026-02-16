@@ -12,6 +12,10 @@
 - **Template type helper:** Corrected handling of `NewHTTPClient` return values (client and error) and updated all `MakeRequest` calls to pass `context.Context` as the first argument.
 - **Hosted page:** Removed the `content` attribute from the `cidaas_hosted_page` resource and from the hosted page API payload. This attribute is no longer supported by the Cidaas backend; existing configurations that set `content` should remove it to avoid schema errors.
 
+#### Upgrade notes (3.5.4 → 3.5.5)
+
+- If you use `cidaas_hosted_page` with a `content` attribute, remove that attribute from your configuration before upgrading. The provider schema no longer accepts `content`; after removing it, run `terraform plan` to confirm no other changes.
+
 ### 3.5.4
 
 ### Enhancements
