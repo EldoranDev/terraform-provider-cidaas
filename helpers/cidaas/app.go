@@ -1,6 +1,7 @@
 package cidaas
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 
@@ -20,9 +21,9 @@ type AppModel struct {
 	PrimaryColor                     string                      `json:"primaryColor,omitempty"`
 	MediaType                        string                      `json:"mediaType,omitempty"`
 	ContentAlign                     string                      `json:"contentAlign,omitempty"`
-	AllowLoginWith                   []string                    `json:"allow_login_with,omitempty"`
-	RedirectURIS                     []string                    `json:"redirect_uris,omitempty"`
-	AllowedLogoutUrls                []string                    `json:"allowed_logout_urls,omitempty"`
+	AllowLoginWith                   []string                    `json:"allow_login_with"`
+	RedirectURIS                     []string                    `json:"redirect_uris"`
+	AllowedLogoutUrls                []string                    `json:"allowed_logout_urls"`
 	EnableDeduplication              *bool                       `json:"enable_deduplication"`
 	AutoLoginAfterRegister           *bool                       `json:"auto_login_after_register,omitempty"`
 	EnablePasswordlessAuth           *bool                       `json:"enable_passwordless_auth,omitempty"`
@@ -35,15 +36,15 @@ type AppModel struct {
 	CompanyName                      string                      `json:"company_name,omitempty"`
 	CompanyAddress                   string                      `json:"company_address,omitempty"`
 	CompanyWebsite                   string                      `json:"company_website,omitempty"`
-	AllowedScopes                    []string                    `json:"allowed_scopes,omitempty"`
-	ResponseTypes                    []string                    `json:"response_types,omitempty"`
-	GrantTypes                       []string                    `json:"grant_types,omitempty"`
-	LoginProviders                   []string                    `json:"login_providers,omitempty"`
-	AdditionalAccessTokenPayload     []string                    `json:"additional_access_token_payload,omitempty"`
-	RequiredFields                   []string                    `json:"required_fields,omitempty"`
+	AllowedScopes                    []string                    `json:"allowed_scopes"`
+	ResponseTypes                    []string                    `json:"response_types"`
+	GrantTypes                       []string                    `json:"grant_types"`
+	LoginProviders                   []string                    `json:"login_providers"`
+	AdditionalAccessTokenPayload     []string                    `json:"additional_access_token_payload"`
+	RequiredFields                   []string                    `json:"required_fields"`
 	IsHybridApp                      *bool                       `json:"is_hybrid_app,omitempty"`
-	AllowedWebOrigins                []string                    `json:"allowed_web_origins,omitempty"`
-	AllowedOrigins                   []string                    `json:"allowed_origins,omitempty"`
+	AllowedWebOrigins                []string                    `json:"allowed_web_origins"`
+	AllowedOrigins                   []string                    `json:"allowed_origins"`
 	MobileSettings                   *IAppMobileSettings         `json:"mobile_settings,omitempty"`
 	DefaultMaxAge                    *int64                      `json:"default_max_age,omitempty"`
 	TokenLifetimeInSeconds           *int64                      `json:"token_lifetime_in_seconds,omitempty"`
@@ -55,40 +56,41 @@ type AppModel struct {
 	PolicyURI                        string                      `json:"policy_uri,omitempty"`
 	TosURI                           string                      `json:"tos_uri,omitempty"`
 	ImprintURI                       string                      `json:"imprint_uri,omitempty"`
-	Contacts                         []string                    `json:"contacts,omitempty"`
+	Contacts                         []string                    `json:"contacts"`
 	TokenEndpointAuthMethod          string                      `json:"token_endpoint_auth_method,omitempty"`
 	TokenEndpointAuthSigningAlg      string                      `json:"token_endpoint_auth_signing_alg,omitempty"`
-	DefaultAcrValues                 []string                    `json:"default_acr_values,omitempty"`
-	WebMessageUris                   []string                    `json:"web_message_uris,omitempty"`
-	SocialProviders                  []ISocialProviderData       `json:"social_providers,omitempty"`
+	DefaultAcrValues                 []string                    `json:"default_acr_values"`
+	WebMessageUris                   []string                    `json:"web_message_uris"`
+	SocialProviders                  []ISocialProviderData       `json:"social_providers"`
 	CustomProviders                  []IProviderMetadData        `json:"custom_providers"`
-	SamlProviders                    []IProviderMetadData        `json:"saml_providers,omitempty"`
-	AdProviders                      []IProviderMetadData        `json:"ad_providers,omitempty"`
+	SamlProviders                    []IProviderMetadData        `json:"saml_providers"`
+	AdProviders                      []IProviderMetadData        `json:"ad_providers"`
 	JweEnabled                       *bool                       `json:"jwe_enabled"`
 	UserConsent                      *bool                       `json:"user_consent,omitempty"`
-	AllowedGroups                    []IAllowedGroups            `json:"allowed_groups,omitempty"`
-	OperationsAllowedGroups          []IAllowedGroups            `json:"operations_allowed_groups,omitempty"`
+	AllowedGroups                    []IAllowedGroups            `json:"allowed_groups"`
+	OperationsAllowedGroups          []IAllowedGroups            `json:"operations_allowed_groups"`
 	Enabled                          *bool                       `json:"enabled"`
-	AllowedFields                    []string                    `json:"allowed_fields,omitempty"`
+	AllowedFields                    []string                    `json:"allowed_fields"`
 	SmartMfa                         *bool                       `json:"smart_mfa,omitempty"`
-	AllowedMfa                       []string                    `json:"allowed_mfa,omitempty"`
+	AllowedMfa                       []string                    `json:"allowed_mfa"`
 	CaptchaRef                       string                      `json:"captcha_ref,omitempty"`
-	CaptchaRefs                      []string                    `json:"captcha_refs,omitempty"`
+	CaptchaRefs                      []string                    `json:"captcha_refs"`
 	ConsentRefs                      []string                    `json:"consent_refs"`
 	CommunicationMediumVerification  string                      `json:"communication_medium_verification,omitempty"`
-	AllowedRoles                     []string                    `json:"allowed_roles,omitempty"`
-	DefaultRoles                     []string                    `json:"default_roles,omitempty"`
+	AllowedRoles                     []string                    `json:"allowed_roles"`
+	DefaultRoles                     []string                    `json:"default_roles"`
 	IsRememberMeSelected             *bool                       `json:"is_remember_me_selected"`
 	EnableBotDetection               *bool                       `json:"enable_bot_detection,omitempty"`
 	BotProvider                      string                      `json:"bot_provider,omitempty"`
-	AllowGuestLoginGroups            []IAllowedGroups            `json:"allow_guest_login_groups,omitempty"`
+	AllowGuestLoginGroups            []IAllowedGroups            `json:"allow_guest_login_groups"`
 	IsLoginSuccessPageEnabled        *bool                       `json:"is_login_success_page_enabled,omitempty"`
 	IsRegisterSuccessPageEnabled     *bool                       `json:"is_register_success_page_enabled,omitempty"`
-	GroupIDs                         []string                    `json:"groupIds,omitempty"`
+	GroupIDs                         []string                    `json:"groupIds"`
+	IsGroupLoginSelectionEnabled     *bool                       `json:"isGroupLoginSelectionEnabled,omitempty"`
 	GroupSelection                   *IGroupSelection            `json:"groupSelection,omitempty"`
-	GroupTypes                       []string                    `json:"groupTypes,omitempty"`
+	GroupTypes                       []string                    `json:"groupTypes"`
 	BackchannelLogoutURI             string                      `json:"backchannel_logout_uri,omitempty"`
-	PostLogoutRedirectUris           []string                    `json:"post_logout_redirect_uris,omitempty"`
+	PostLogoutRedirectUris           []string                    `json:"post_logout_redirect_uris"`
 	LogoAlign                        string                      `json:"logoAlign,omitempty"`
 	Mfa                              *IMfaOption                 `json:"mfa,omitempty"`
 	Webfinger                        string                      `json:"webfinger,omitempty"`
@@ -110,17 +112,17 @@ type AppModel struct {
 	RequestObjectSigningAlg          string                      `json:"request_object_signing_alg,omitempty"`
 	RequestObjectEncryptionAlg       string                      `json:"request_object_encryption_alg,omitempty"`
 	RequestObjectEncryptionEnc       string                      `json:"request_object_encryption_enc,omitempty"`
-	RequestUris                      []string                    `json:"request_uris,omitempty"`
+	RequestUris                      []string                    `json:"request_uris"`
 	Description                      string                      `json:"description,omitempty"`
-	DefaultScopes                    []string                    `json:"default_scopes,omitempty"`
-	PendingScopes                    []string                    `json:"pending_scopes,omitempty"`
+	DefaultScopes                    []string                    `json:"default_scopes"`
+	PendingScopes                    []string                    `json:"pending_scopes"`
 	ConsentPageGroup                 string                      `json:"consent_page_group,omitempty"`
 	PasswordPolicyRef                string                      `json:"password_policy_ref"` // omitempty removed as we need to pass "" when configured "" or null
 	BlockingMechanismRef             string                      `json:"blocking_mechanism_ref,omitempty"`
 	Sub                              string                      `json:"sub,omitempty"`
 	Role                             string                      `json:"role,omitempty"`
 	MfaConfiguration                 string                      `json:"mfa_configuration,omitempty"`
-	SuggestMfa                       []string                    `json:"suggest_mfa,omitempty"`
+	SuggestMfa                       []string                    `json:"suggest_mfa"`
 	AllowGuestLogin                  *bool                       `json:"allow_guest_login,omitempty"`
 	LoginSpi                         *ILoginSPI                  `json:"login_spi,omitempty"`
 	BackgroundURI                    string                      `json:"backgroundUri,omitempty"`
@@ -133,6 +135,7 @@ type AppModel struct {
 	BackchannelLogoutSessionRequired *bool                       `json:"backchannel_logout_session_required,omitempty"`
 	EnableLoginSpi                   *bool                       `json:"enable_login_spi,omitempty"`
 	AcceptRolesInTheRegistration     *bool                       `json:"accept_roles_in_the_registration,omitempty"`
+	OauthStandard                    string                      `json:"oauthStandard,omitempty"`
 
 	// attributes not available in resource app schema
 	TappID          string         `json:"tapp_id,omitempty"`
@@ -152,6 +155,7 @@ type AppModel struct {
 type IAllowedGroups struct {
 	ID           string   `json:"id,omitempty"`
 	SecondaryID  string   `json:"_id,omitempty"`
+	GroupType    string   `json:"groupType,omitempty"`
 	GroupID      string   `json:"groupId,omitempty"`
 	Roles        []string `json:"roles,omitempty"`
 	DefaultRoles []string `json:"default_roles,omitempty"`
@@ -230,6 +234,7 @@ type GroupRoleRestriction struct {
 
 type GroupRoleFilters struct {
 	GroupID    string     `json:"groupId,omitempty"`
+	GroupType  string     `json:"groupType,omitempty"`
 	RoleFilter RoleFilter `json:"roleFilter,omitempty"`
 }
 
@@ -256,45 +261,22 @@ type ClientSecret struct {
 	ClientSecretIssuedAt  int64  `json:"client_secret_issued_at,omitempty"`
 }
 
-var _ AppService = &App{}
-
 type App struct {
 	ClientConfig
 }
-type AppService interface {
-	Create(app AppModel) (AppResponse, error)
-	Get(clientID string) (*AppResponse, error)
-	Update(app AppModel) (AppResponse, error)
-	Delete(clientID string) error
-}
 
-func NewApp(clientConfig ClientConfig) AppService {
+func NewApp(clientConfig ClientConfig) *App {
 	return &App{clientConfig}
 }
 
-func (a *App) Create(app AppModel) (AppResponse, error) {
+func (a *App) Create(ctx context.Context, app AppModel) (*AppResponse, error) {
 	var response AppResponse
 	url := fmt.Sprintf("%s/%s", a.BaseURL, "apps-srv/clients")
-	httpClient := util.NewHTTPClient(url, http.MethodPost, a.AccessToken)
-
-	res, err := httpClient.MakeRequest(app)
-	if err = util.HandleResponseError(res, err); err != nil {
-		return response, err
+	client, err := util.NewHTTPClient(url, http.MethodPost, a.AccessToken)
+	if err != nil {
+		return nil, err
 	}
-	defer res.Body.Close()
-
-	if err = util.ProcessResponse(res, &response); err != nil {
-		return response, err
-	}
-	return response, nil
-}
-
-func (a *App) Get(clientID string) (*AppResponse, error) {
-	var response AppResponse
-	url := fmt.Sprintf("%s/%s/%s", a.BaseURL, "apps-srv/clients", clientID)
-	httpClient := util.NewHTTPClient(url, http.MethodGet, a.AccessToken)
-
-	res, err := httpClient.MakeRequest(nil)
+	res, err := client.MakeRequest(ctx, app)
 	if err = util.HandleResponseError(res, err); err != nil {
 		return nil, err
 	}
@@ -306,28 +288,51 @@ func (a *App) Get(clientID string) (*AppResponse, error) {
 	return &response, nil
 }
 
-func (a *App) Update(app AppModel) (AppResponse, error) {
+func (a *App) Get(ctx context.Context, clientID string) (*AppResponse, error) {
 	var response AppResponse
-	url := fmt.Sprintf("%s/%s", a.BaseURL, "apps-srv/clients")
-	httpClient := util.NewHTTPClient(url, http.MethodPut, a.AccessToken)
-
-	res, err := httpClient.MakeRequest(app)
+	url := fmt.Sprintf("%s/%s/%s", a.BaseURL, "apps-srv/clients", clientID)
+	client, err := util.NewHTTPClient(url, http.MethodGet, a.AccessToken)
+	if err != nil {
+		return nil, err
+	}
+	res, err := client.MakeRequest(ctx, nil)
 	if err = util.HandleResponseError(res, err); err != nil {
-		return response, err
+		return nil, err
 	}
 	defer res.Body.Close()
 
 	if err = util.ProcessResponse(res, &response); err != nil {
-		return response, err
+		return nil, err
 	}
-	return response, nil
+	return &response, nil
 }
 
-func (a *App) Delete(clientID string) error {
-	url := fmt.Sprintf("%s/%s/%s", a.BaseURL, "apps-srv/clients", clientID)
-	httpClient := util.NewHTTPClient(url, http.MethodDelete, a.AccessToken)
+func (a *App) Update(ctx context.Context, app AppModel) (*AppResponse, error) {
+	var response AppResponse
+	url := fmt.Sprintf("%s/%s", a.BaseURL, "apps-srv/clients")
+	client, err := util.NewHTTPClient(url, http.MethodPut, a.AccessToken)
+	if err != nil {
+		return nil, err
+	}
+	res, err := client.MakeRequest(ctx, app)
+	if err = util.HandleResponseError(res, err); err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
 
-	res, err := httpClient.MakeRequest(nil)
+	if err = util.ProcessResponse(res, &response); err != nil {
+		return nil, err
+	}
+	return &response, nil
+}
+
+func (a *App) Delete(ctx context.Context, clientID string) error {
+	url := fmt.Sprintf("%s/%s/%s", a.BaseURL, "apps-srv/clients", clientID)
+	client, err := util.NewHTTPClient(url, http.MethodDelete, a.AccessToken)
+	if err != nil {
+		return err
+	}
+	res, err := client.MakeRequest(ctx, nil)
 	if err = util.HandleResponseError(res, err); err != nil {
 		return err
 	}

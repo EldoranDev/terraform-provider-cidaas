@@ -8,7 +8,6 @@ import (
 	"github.com/Cidaas/terraform-provider-cidaas/helpers/cidaas"
 	"github.com/Cidaas/terraform-provider-cidaas/helpers/util"
 	"github.com/Cidaas/terraform-provider-cidaas/internal/validators"
-	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -16,7 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
@@ -24,6 +23,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
 const layout = "2006-01-02T15:04:05Z"
@@ -248,12 +248,10 @@ var regFieldSchema = schema.Schema{
 		},
 		// optional: Order of the Field in the UI
 		"order": schema.Int64Attribute{
-			Optional:            true,
 			Computed:            true,
-			MarkdownDescription: "The attribute order is used to set the order of the Field in the UI. Defaults set to `1`",
-			Default:             int64default.StaticInt64(1),
-			Validators: []validator.Int64{
-				int64validator.AtLeast(1),
+			MarkdownDescription: "The attribute order is used to set the order of the Field in the UI.",
+			PlanModifiers: []planmodifier.Int64{
+				int64planmodifier.UseStateForUnknown(),
 			},
 		},
 		"scopes": schema.SetAttribute{
@@ -279,8 +277,8 @@ var regFieldSchema = schema.Schema{
 						Validators: []validator.String{
 							stringvalidator.OneOf(
 								func() []string {
-									validLocals := make([]string, len(util.Locals))
-									for i, locale := range util.Locals {
+									validLocals := make([]string, len(util.Locales))
+									for i, locale := range util.Locales {
 										validLocals[i] = locale.LocaleString
 									}
 									return validLocals
@@ -445,25 +443,46 @@ func (r *RegFieldResource) Create(ctx context.Context, req resource.CreateReques
 	rfModel, diags := prepareRegFieldModel(ctx, plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "Failed to prepare registration field model", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
 		return
 	}
-	res, err := r.cidaasClient.RegField.Upsert(*rfModel)
+
+	res, err := r.cidaasClient.RegFields.Upsert(ctx, *rfModel)
 	if err != nil {
+		tflog.Error(ctx, "Failed to create registration field via API", util.H{
+			"error": err.Error(),
+		})
 		resp.Diagnostics.AddError("failed to create registration field", util.FormatErrorMessage(err))
 		return
 	}
+	tflog.Info(ctx, "Successfully created registration field via API", util.H{
+		"field_id": res.Data.ID,
+	})
+
 	plan.ID = types.StringValue(res.Data.ID)
+	plan.Order = types.Int64Value(res.Data.Order)
 	plan.BaseDataType = types.StringValue(res.Data.BaseDataType)
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "Failed to set state", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
 		return
 	}
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+
+	tflog.Info(ctx, "Resource registration field created successfully", util.H{
+		"field_id":  res.Data.ID,
+		"field_key": plan.FieldKey.ValueString(),
+	})
 }
 
 func (r *RegFieldResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var state RegFieldConfig
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
-	res, err := r.cidaasClient.RegField.Get(state.FieldKey.ValueString())
+	res, err := r.cidaasClient.RegFields.Get(ctx, state.FieldKey.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("failed to read registration field", util.FormatErrorMessage(err))
 		return
@@ -573,13 +592,13 @@ func (r *RegFieldResource) Read(ctx context.Context, req resource.ReadRequest, r
 			},
 			map[string]attr.Value{
 				"max_length": func() basetypes.Int64Value {
-					if util.StringInSlice(res.Data.DataType, []string{"TEXT", "URL"}) {
+					if util.Contains([]string{"TEXT", "URL"}, res.Data.DataType) {
 						return types.Int64Null()
 					}
 					return util.Int64ValueOrNull(res.Data.FieldDefinition.MaxLength)
 				}(),
 				"min_length": func() basetypes.Int64Value {
-					if util.StringInSlice(res.Data.DataType, []string{"TEXT", "URL"}) {
+					if util.Contains([]string{"TEXT", "URL"}, res.Data.DataType) {
 						return types.Int64Null()
 					}
 					return util.Int64ValueOrNull(res.Data.FieldDefinition.MinLength)
@@ -604,32 +623,73 @@ func (r *RegFieldResource) Update(ctx context.Context, req resource.UpdateReques
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	resp.Diagnostics.Append(plan.ExtractConfigs(ctx)...)
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "failed to get plan/state data or extract configurations", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
+		return
+	}
 
 	fieldModel, diags := prepareRegFieldModel(ctx, plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "failed to prepare registration field model for update", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
 		return
 	}
+
 	fieldModel.ID = state.ID.ValueString()
-	_, err := r.cidaasClient.RegField.Upsert(*fieldModel)
+	_, err := r.cidaasClient.RegFields.Upsert(ctx, *fieldModel)
 	if err != nil {
+		tflog.Error(ctx, "failed to update registration field via API", util.H{
+			"field_id": state.ID.ValueString(),
+			"error":    err.Error(),
+		})
 		resp.Diagnostics.AddError("failed to update registration field", util.FormatErrorMessage(err))
 		return
 	}
+	tflog.Info(ctx, "successfully updated registration field via API", util.H{
+		"field_id": state.ID.ValueString(),
+	})
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "failed to set state after update", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
+		return
+	}
+
+	tflog.Debug(ctx, "resource registration field updated successfully", util.H{
+		"field_id":  state.ID.ValueString(),
+		"field_key": plan.FieldKey.ValueString(),
+	})
 }
 
 func (r *RegFieldResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var state RegFieldConfig
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "failed to get state data for deletion", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
 		return
 	}
-	err := r.cidaasClient.RegField.Delete(state.FieldKey.ValueString())
+
+	err := r.cidaasClient.RegFields.Delete(ctx, state.FieldKey.ValueString())
 	if err != nil {
+		tflog.Error(ctx, "failed to delete registration field via API", util.H{
+			"field_key": state.FieldKey.ValueString(),
+			"error":     err.Error(),
+		})
 		resp.Diagnostics.AddError("failed to delete registration field", util.FormatErrorMessage(err))
 		return
 	}
+
+	tflog.Info(ctx, "resource registration field deleted successfully", util.H{
+		"field_key": state.FieldKey.ValueString(),
+	})
 }
 
 func (r *RegFieldResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
@@ -652,7 +712,6 @@ func prepareRegFieldModel(ctx context.Context, plan RegFieldConfig) (*cidaas.Reg
 	regConfig.FieldType = plan.FieldType.ValueString()
 	regConfig.FieldKey = plan.FieldKey.ValueString()
 	regConfig.DataType = plan.DataType.ValueString()
-	regConfig.Order = plan.Order.ValueInt64()
 
 	className := "FieldSetup"
 	if regConfig.FieldType == "SYSTEM" {
@@ -696,7 +755,7 @@ func prepareRegFieldModel(ctx context.Context, plan RegFieldConfig) (*cidaas.Reg
 				tempLocalText.Attributes = cidaasAttribues
 			}
 			if !s.ConsentLabel.IsNull() && !s.ConsentLabel.IsUnknown() {
-				tempLocalText.ConsentLabel = &cidaas.Consent{
+				tempLocalText.ConsentLabel = &cidaas.ConsentLabel{
 					Label:     s.consent.Label.ValueString(),
 					LabelText: s.consent.LabelText.ValueString(),
 				}
@@ -779,7 +838,7 @@ func (v validateIsMaxMinMsgAvailableForRegex) ValidateString(ctx context.Context
 		var config RegFieldConfig
 		resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
 		resp.Diagnostics.Append(config.ExtractConfigs(ctx)...)
-		if !util.StringInSlice(config.DataType.ValueString(), []string{"TEXT", "URL"}) {
+		if !util.Contains([]string{"TEXT", "URL"}, config.DataType.ValueString()) {
 			resp.Diagnostics.AddError(
 				"Validation Error",
 				fmt.Sprintf("The attribute %s is only allowed when data_type is TEXT or URL", req.Path.String()),
@@ -1008,7 +1067,7 @@ func (v dataTypeValidator) ValidateString(ctx context.Context, req validator.Str
 	}
 
 	attrKeysRequiredDataTypes := []string{"SELECT", "RADIO", "MULTISELECT"}
-	if util.StringInSlice(req.ConfigValue.ValueString(), attrKeysRequiredDataTypes) {
+	if util.Contains(attrKeysRequiredDataTypes, req.ConfigValue.ValueString()) {
 		for _, s := range config.localTexts {
 			if !s.Attributes.IsNull() && !s.Attributes.IsUnknown() && !(len(s.attributes) > 0) {
 				resp.Diagnostics.AddError(
@@ -1020,7 +1079,7 @@ func (v dataTypeValidator) ValidateString(ctx context.Context, req validator.Str
 	}
 
 	noMaxMinLengthDataTypes := []string{"CHECKBOX", "CONSENT", "JSON_STRING", "ARRAY", "NUMBER", "SELECT", "RADIO", "MULTISELECT", "MOBILE", "JSON_STRING", "TEXT", "URL"}
-	if util.StringInSlice(req.ConfigValue.ValueString(), noMaxMinLengthDataTypes) {
+	if util.Contains(noMaxMinLengthDataTypes, req.ConfigValue.ValueString()) {
 		if config.FieldDefinition.IsNull() {
 			return
 		}
@@ -1036,7 +1095,7 @@ func (v dataTypeValidator) ValidateString(ctx context.Context, req validator.Str
 		"TEXT", "NUMBER", "CHECKBOX", "PASSWORD", "DATE", "URL", "EMAIL",
 		"TEXTAREA", "MOBILE", "CONSENT", "JSON_STRING", "USERNAME", "ARRAY", "GROUPING", "DAYDATE",
 	}
-	if util.StringInSlice(req.ConfigValue.ValueString(), noAttributesDataTypes) {
+	if util.Contains(noAttributesDataTypes, req.ConfigValue.ValueString()) {
 		for _, v := range config.localTexts {
 			if len(v.attributes) > 0 {
 				resp.Diagnostics.AddError(

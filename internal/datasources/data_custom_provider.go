@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
 type CustomProviderDataSource struct {
@@ -91,25 +92,40 @@ func (d *CustomProviderDataSource) Read(
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "failed to get config data", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
 		return
 	}
 
 	data.ID = types.StringValue(uuid.New().String())
-	result, diag := customProviderFilter.GetAndFilter(d.Client, data.Filters, listCustomProviders)
+	result, diag := customProviderFilter.GetAndFilter(ctx, d.Client, data.Filters, listCustomProviders)
 	if diag != nil {
+		tflog.Error(ctx, "failed to filter custom_provider data", util.H{
+			"error":  diag.Summary(),
+			"detail": diag.Detail(),
+		})
 		resp.Diagnostics.Append(diag)
 		return
 	}
+	tflog.Debug(ctx, "successfully filtered custom_provider data")
 
 	data.CustomProvider = parseModel(
 		AnySliceToTyped[cidaas.CustomProviderModel](result),
 		parseCustomProvider,
 	)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "failed to set state", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
+		return
+	}
+	tflog.Info(ctx, "successfully read custom_provider data source")
 }
 
-func listCustomProviders(client *cidaas.Client) ([]any, error) {
-	cps, err := client.CustomProvider.GetAll()
+func listCustomProviders(ctx context.Context, client *cidaas.Client) ([]any, error) {
+	cps, err := client.CustomProvider.GetAll(ctx)
 	if err != nil {
 		return nil, err
 	}

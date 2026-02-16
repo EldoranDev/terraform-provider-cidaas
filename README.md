@@ -202,27 +202,27 @@ You can explore more on the module in the github repo.
 resource "cidaas_app" "sample" {
   client_name                     = "Test Terraform Application" // unique
   client_type                     = "SINGLE_PAGE"
-  accent_color                    = "#ef4923"                        // Default: #ef4923
-  primary_color                   = "#ef4923"                        // Default: #f7941d
-  media_type                      = "IMAGE"                          // Default: IMAGE
-  allow_login_with                = ["EMAIL", "MOBILE", "USER_NAME"] // Default: ["EMAIL", "MOBILE", "USER_NAME"]
+  accent_color                    = "#ef4923"
+  primary_color                   = "#ef4923"
+  media_type                      = "IMAGE"
+  allow_login_with                = ["EMAIL", "MOBILE", "USER_NAME"]
   redirect_uris                   = ["https://cidaas.com"]
   allowed_logout_urls             = ["https://cidaas.com"]
-  enable_deduplication            = true      // Default: false
-  auto_login_after_register       = true      // Default: false
-  enable_passwordless_auth        = false     // Default: true
-  register_with_login_information = false     // Default: false
-  hosted_page_group               = "default" // Default: default
+  enable_deduplication            = true
+  auto_login_after_register       = true
+  enable_passwordless_auth        = false
+  register_with_login_information = false
+  hosted_page_group               = "default"
   company_name                    = "Widas ID GmbH"
   company_address                 = "01"
   company_website                 = "https://cidaas.com"
   allowed_scopes                  = ["openid", "cidaas:register", "profile"]
   client_display_name             = "Display Name of the app" // unique
-  content_align                   = "CENTER"                  // Default: CENTER
+  content_align                   = "CENTER"
   post_logout_redirect_uris       = ["https://cidaas.com"]
-  logo_align                      = "CENTER" // Default: CENTER
-  allow_disposable_email          = false    // Default: false
-  validate_phone_number           = false    // Default: false
+  logo_align                      = "CENTER"
+  allow_disposable_email          = false
+  validate_phone_number           = false
   additional_access_token_payload = ["sample_payload"]
   required_fields                 = ["email"]
   mobile_settings = {
@@ -238,8 +238,8 @@ resource "cidaas_app" "sample" {
   tos_uri                             = "https://cidaas.com"
   imprint_uri                         = "https://cidaas.com"
   contacts                            = ["support@cidas.de"]
-  token_endpoint_auth_method          = "client_secret_post" // Default: client_secret_post
-  token_endpoint_auth_signing_alg     = "RS256"              // Default: RS256
+  token_endpoint_auth_method          = "client_secret_post"
+  token_endpoint_auth_signing_alg     = "RS256"
   default_acr_values                  = ["default"]
   web_message_uris                    = ["https://cidaas.com"]
   allowed_fields                      = ["email"]
@@ -248,14 +248,14 @@ resource "cidaas_app" "sample" {
   captcha_refs                        = ["sample"]
   consent_refs                        = ["sample"]
   communication_medium_verification   = "email_verification_required_on_usage"
-  enable_bot_detection                = false // Default: false
+  enable_bot_detection                = false
   allow_guest_login_groups = [{
     group_id      = "developer101"
     roles         = ["developer", "qa", "admin"]
     default_roles = ["developer"]
   }]
-  is_login_success_page_enabled    = false // Default: false
-  is_register_success_page_enabled = false // Default: false
+  is_login_success_page_enabled    = false
+  is_register_success_page_enabled = false
   group_ids                        = ["sample"]
   group_selection = {
     selectable_groups      = ["developer-users"]
@@ -324,7 +324,7 @@ resource "cidaas_app" "sample" {
 - `allow_disposable_email` (Boolean) Allow disposable email addresses. Default is set to `false` while creating an app.
 - `allow_guest_login` (Boolean) Flag to specify whether guest users are allowed to access functionalities of the client. Default is set to `false`
 - `allow_guest_login_groups` (Attributes List) (see [below for nested schema](#nestedatt--allow_guest_login_groups))
-- `allow_login_with` (Set of String) allow_login_with is used to specify the preferred methods of login allowed for a client. Allowed values are EMAIL, MOBILE and USER_NAMEThe default is set to `['EMAIL', 'MOBILE', 'USER_NAME']`.
+- `allow_login_with` (Set of String) allow_login_with is used to specify the preferred methods of login allowed for a client.
 - `allowed_fields` (Set of String)
 - `allowed_groups` (Attributes List) (see [below for nested schema](#nestedatt--allowed_groups))
 - `allowed_logout_urls` (Set of String) Allowed logout URLs for OAuth2 client.
@@ -374,6 +374,7 @@ resource "cidaas_app" "sample" {
 - `id_token_signed_response_alg` (String)
 - `imprint_uri` (String) The URL to the imprint page.
 - `initiate_login_uri` (String)
+- `is_group_login_selection_enabled` (Boolean) Flag to enable or disble group login selection
 - `is_hybrid_app` (Boolean) Flag to set if your app is hybrid or not. Default is set to `false`. Set to `true` to make your app hybrid.
 - `is_login_success_page_enabled` (Boolean)
 - `is_register_success_page_enabled` (Boolean)
@@ -389,6 +390,7 @@ resource "cidaas_app" "sample" {
 - `mfa` (Attributes) Configuration settings for Multi-Factor Authentication (MFA). (see [below for nested schema](#nestedatt--mfa))
 - `mfa_configuration` (String)
 - `mobile_settings` (Attributes) (see [below for nested schema](#nestedatt--mobile_settings))
+- `oauth_standard` (String) Specifies the OAuth standard version to use. Allowed values: 'OAuth2.1', 'OAuth2.0'.
 - `operations_allowed_groups` (Attributes List) (see [below for nested schema](#nestedatt--operations_allowed_groups))
 - `password_policy_ref` (String)
 - `pending_scopes` (Set of String)
@@ -815,9 +817,10 @@ terraform import cidaas_consent_version.v1 3f453233-92d4-475b-b10e:813fbd47-6c50
 This example demonstrates the configuration of a custom provider resource for interacting with cidaas.
 
  Ensure that the below scopes are assigned to the client with the specified `client_id`:
-* cidaas:providers_read
-* cidaas:providers_write
-* cidaas:providers_delete
+- cidaas:providers_read
+- cidaas:providers_write
+- cidaas:providers_delete
+
 
 ## Example Usage
 
@@ -848,7 +851,7 @@ resource "cidaas_custom_provider" "sample" {
     },
   ]
 
-   userinfo_fields = {
+  userinfo_fields = {
     family_name        = { "ext_field_key" = "cp_family_name" }
     address            = { "ext_field_key" = "cp_address" }
     birthdate          = { "ext_field_key" = "01-01-2000" }
@@ -880,312 +883,356 @@ resource "cidaas_custom_provider" "sample" {
 
 ### Required
 
-* `authorization_endpoint` (String) The URL for authorization of the provider.
-* `client_id` (String) The client ID of the provider.
-* `client_secret` (String, Sensitive) The client secret of the provider.
-* `display_name` (String) The display name of the provider.
-* `provider_name` (String) The unique identifier of the custom provider. This cannot be updated for an existing state.
-* `token_endpoint` (String) The URL to generate token with this provider.
-* `userinfo_endpoint` (String) The URL to fetch user details using this provider.
+- `authorization_endpoint` (String) The URL for authorization of the provider.
+- `client_id` (String) The client ID of the provider.
+- `client_secret` (String, Sensitive) The client secret of the provider.
+- `display_name` (String) The display name of the provider.
+- `provider_name` (String) The unique identifier of the custom provider. This cannot be updated for an existing state.
+- `token_endpoint` (String) The URL to generate token with this provider.
+- `userinfo_endpoint` (String) The URL to fetch user details using this provider.
 
 ### Optional
 
-* `amr_config` (Attributes List) AMR configuration mapping. (see [below for nested schema](#nestedatt--amr_config))
-* `domains` (Set of String) The domains of the provider.
-* `logo_url` (String) The URL for the provider's logo.
-* `scope_display_label` (String) Display label for the scope of the provider.
-* `scopes` (Attributes List) List of scopes of the provider with details (see [below for nested schema](#nestedatt--scopes))
-* `standard_type` (String) Type of standard. Allowed values `OAUTH2` and `OPENID_CONNECT`.
-* `userinfo_fields` (Attributes) Object containing various user information fields with their values. The userinfo_fields section includes specific fields such as name, family_name, address, etc., along with custom_fields allowing additional user information customization (see [below for nested schema](#nestedatt--userinfo_fields))
-* `userinfo_source` (String) Source of userinfo. Allowed values are `IDTOKEN` and `USERINFOENDPOINT`.
+- `amr_config` (Attributes List) AMR configuration mapping. (see [below for nested schema](#nestedatt--amr_config))
+- `apikey_details` (Attributes) Configuration for API key-based authentication. It's a **required** parameter when the auth_type is APIKEY. (see [below for nested schema](#nestedatt--apikey_details))
+- `auth_type` (String) Type of authentication. Allowed values `APIKEY`, `CIDAAS_OAUTH2` and `TOTP`.
+- `cidaas_auth_details` (Attributes) Configuration for cidaas authentication. It's a **required** parameter when the auth_type is CIDAAS_OAUTH2. (see [below for nested schema](#nestedatt--cidaas_auth_details))
+- `domains` (Set of String) The domains of the provider.
+- `logo_url` (String) The URL for the provider's logo.
+- `pkce` (Boolean) The flag to enable or disable pkce flow. By default, the value is set to `false`
+- `scope_display_label` (String) Display label for the scope of the provider.
+- `scopes` (Attributes List) List of scopes of the provider with details (see [below for nested schema](#nestedatt--scopes))
+- `standard_type` (String) Type of standard. Allowed values `OAUTH2` and `OPENID_CONNECT`.
+- `totp_details` (Attributes) Configuration for TOTP based authentication.  It's a **required** parameter when the auth_type is TOTP. (see [below for nested schema](#nestedatt--totp_details))
+- `userinfo_fields` (Attributes) Object containing various user information fields with their values. The userinfo_fields section includes specific fields such as name, family_name, address, etc., along with custom_fields allowing additional user information customization (see [below for nested schema](#nestedatt--userinfo_fields))
+- `userinfo_source` (String) Source of userinfo. Allowed values are `IDTOKEN` and `USERINFOENDPOINT`.
 
 ### Read-Only
 
-* `id` (String) The ID of the resource.
+- `id` (String) The ID of the resource.
 
 <a id="nestedatt--amr_config"></a>
-
 ### Nested Schema for `amr_config`
 
 Required:
 
-* `amr_value` (String)
-* `ext_amr_value` (String)
+- `amr_value` (String)
+- `ext_amr_value` (String)
+
+
+<a id="nestedatt--apikey_details"></a>
+### Nested Schema for `apikey_details`
+
+Required:
+
+- `key` (String) The API key that will be used to authenticate the webhook request.The key that will be passed in the request header or in query param as configured in the attribute `placement`
+- `placeholder` (String) The attribute is the placeholder for the key which need to be passed as a query parameter or in the request header.
+- `placement` (String) The placement of the API key in the request (e.g., query).The allowed value are `header` and `query`.
+
+
+<a id="nestedatt--cidaas_auth_details"></a>
+### Nested Schema for `cidaas_auth_details`
+
+Required:
+
+- `client_id` (String) The client ID for cidaas authentication.
+
 
 <a id="nestedatt--scopes"></a>
-
 ### Nested Schema for `scopes`
 
 Optional:
 
-* `recommended` (Boolean) Indicates if the scope is recommended.
-* `required` (Boolean) Indicates if the scope is required.
-* `scope_name` (String) The name of the scope, e.g., `openid`, `profile`.
+- `recommended` (Boolean) Indicates if the scope is recommended.
+- `required` (Boolean) Indicates if the scope is required.
+- `scope_name` (String) The name of the scope, e.g., `openid`, `profile`.
+
+
+<a id="nestedatt--totp_details"></a>
+### Nested Schema for `totp_details`
+
+Required:
+
+- `key` (String) The key used for TOTP authentication.
+- `placeholder` (String) A placeholder value for the TOTP.
+- `placement` (String) The placement of the TOTP in the request.The allowed value are `header` and `query`.
+
 
 <a id="nestedatt--userinfo_fields"></a>
-
 ### Nested Schema for `userinfo_fields`
 
 Optional:
 
-* `address` (Attributes) (see [below for nested schema](#nestedatt--userinfo_fields--address))
-* `birthdate` (Attributes) (see [below for nested schema](#nestedatt--userinfo_fields--birthdate))
-* `custom_fields` (Map of String)
-* `email` (Attributes) (see [below for nested schema](#nestedatt--userinfo_fields--email))
-* `email_verified` (Attributes) (see [below for nested schema](#nestedatt--userinfo_fields--email_verified))
-* `family_name` (Attributes) (see [below for nested schema](#nestedatt--userinfo_fields--family_name))
-* `gender` (Attributes) (see [below for nested schema](#nestedatt--userinfo_fields--gender))
-* `given_name` (Attributes) (see [below for nested schema](#nestedatt--userinfo_fields--given_name))
-* `locale` (Attributes) (see [below for nested schema](#nestedatt--userinfo_fields--locale))
-* `middle_name` (Attributes) (see [below for nested schema](#nestedatt--userinfo_fields--middle_name))
-* `mobile_number` (Attributes) (see [below for nested schema](#nestedatt--userinfo_fields--mobile_number))
-* `name` (Attributes) (see [below for nested schema](#nestedatt--userinfo_fields--name))
-* `nickname` (Attributes) (see [below for nested schema](#nestedatt--userinfo_fields--nickname))
-* `phone_number` (Attributes) (see [below for nested schema](#nestedatt--userinfo_fields--phone_number))
-* `picture` (Attributes) (see [below for nested schema](#nestedatt--userinfo_fields--picture))
-* `preferred_username` (Attributes) (see [below for nested schema](#nestedatt--userinfo_fields--preferred_username))
-* `profile` (Attributes) (see [below for nested schema](#nestedatt--userinfo_fields--profile))
-* `sub` (Attributes) (see [below for nested schema](#nestedatt--userinfo_fields--sub))
-* `updated_at` (Attributes) (see [below for nested schema](#nestedatt--userinfo_fields--updated_at))
-* `website` (Attributes) (see [below for nested schema](#nestedatt--userinfo_fields--website))
-* `zoneinfo` (Attributes) (see [below for nested schema](#nestedatt--userinfo_fields--zoneinfo))
+- `address` (Attributes) (see [below for nested schema](#nestedatt--userinfo_fields--address))
+- `birthdate` (Attributes) (see [below for nested schema](#nestedatt--userinfo_fields--birthdate))
+- `custom_fields` (Map of String)
+- `email` (Attributes) (see [below for nested schema](#nestedatt--userinfo_fields--email))
+- `email_verified` (Attributes) (see [below for nested schema](#nestedatt--userinfo_fields--email_verified))
+- `family_name` (Attributes) (see [below for nested schema](#nestedatt--userinfo_fields--family_name))
+- `gender` (Attributes) (see [below for nested schema](#nestedatt--userinfo_fields--gender))
+- `given_name` (Attributes) (see [below for nested schema](#nestedatt--userinfo_fields--given_name))
+- `groups` (Attributes) (see [below for nested schema](#nestedatt--userinfo_fields--groups))
+- `locale` (Attributes) (see [below for nested schema](#nestedatt--userinfo_fields--locale))
+- `middle_name` (Attributes) (see [below for nested schema](#nestedatt--userinfo_fields--middle_name))
+- `mobile_number` (Attributes) (see [below for nested schema](#nestedatt--userinfo_fields--mobile_number))
+- `name` (Attributes) (see [below for nested schema](#nestedatt--userinfo_fields--name))
+- `nickname` (Attributes) (see [below for nested schema](#nestedatt--userinfo_fields--nickname))
+- `phone_number` (Attributes) (see [below for nested schema](#nestedatt--userinfo_fields--phone_number))
+- `picture` (Attributes) (see [below for nested schema](#nestedatt--userinfo_fields--picture))
+- `preferred_username` (Attributes) (see [below for nested schema](#nestedatt--userinfo_fields--preferred_username))
+- `profile` (Attributes) (see [below for nested schema](#nestedatt--userinfo_fields--profile))
+- `sub` (Attributes) (see [below for nested schema](#nestedatt--userinfo_fields--sub))
+- `updated_at` (Attributes) (see [below for nested schema](#nestedatt--userinfo_fields--updated_at))
+- `website` (Attributes) (see [below for nested schema](#nestedatt--userinfo_fields--website))
+- `zoneinfo` (Attributes) (see [below for nested schema](#nestedatt--userinfo_fields--zoneinfo))
 
 <a id="nestedatt--userinfo_fields--address"></a>
-
 ### Nested Schema for `userinfo_fields.address`
 
 Required:
 
-* `ext_field_key` (String)
+- `ext_field_key` (String)
 
 Optional:
 
-* `default` (String)
+- `default` (String)
+
 
 <a id="nestedatt--userinfo_fields--birthdate"></a>
-
 ### Nested Schema for `userinfo_fields.birthdate`
 
 Required:
 
-* `ext_field_key` (String)
+- `ext_field_key` (String)
 
 Optional:
 
-* `default` (String)
+- `default` (String)
+
 
 <a id="nestedatt--userinfo_fields--email"></a>
-
 ### Nested Schema for `userinfo_fields.email`
 
 Required:
 
-* `ext_field_key` (String)
+- `ext_field_key` (String)
 
 Optional:
 
-* `default` (String)
+- `default` (String)
+
 
 <a id="nestedatt--userinfo_fields--email_verified"></a>
-
 ### Nested Schema for `userinfo_fields.email_verified`
 
 Optional:
 
-* `default` (Boolean)
-* `ext_field_key` (String)
+- `default` (Boolean)
+- `ext_field_key` (String)
+
 
 <a id="nestedatt--userinfo_fields--family_name"></a>
-
 ### Nested Schema for `userinfo_fields.family_name`
 
 Required:
 
-* `ext_field_key` (String)
+- `ext_field_key` (String)
 
 Optional:
 
-* `default` (String)
+- `default` (String)
+
 
 <a id="nestedatt--userinfo_fields--gender"></a>
-
 ### Nested Schema for `userinfo_fields.gender`
 
 Required:
 
-* `ext_field_key` (String)
+- `ext_field_key` (String)
 
 Optional:
 
-* `default` (String)
+- `default` (String)
+
 
 <a id="nestedatt--userinfo_fields--given_name"></a>
-
 ### Nested Schema for `userinfo_fields.given_name`
 
 Required:
 
-* `ext_field_key` (String)
+- `ext_field_key` (String)
 
 Optional:
 
-* `default` (String)
+- `default` (String)
+
+
+<a id="nestedatt--userinfo_fields--groups"></a>
+### Nested Schema for `userinfo_fields.groups`
+
+Required:
+
+- `ext_field_key` (String)
+
+Optional:
+
+- `default` (String)
+
 
 <a id="nestedatt--userinfo_fields--locale"></a>
-
 ### Nested Schema for `userinfo_fields.locale`
 
 Required:
 
-* `ext_field_key` (String)
+- `ext_field_key` (String)
 
 Optional:
 
-* `default` (String)
+- `default` (String)
+
 
 <a id="nestedatt--userinfo_fields--middle_name"></a>
-
 ### Nested Schema for `userinfo_fields.middle_name`
 
 Required:
 
-* `ext_field_key` (String)
+- `ext_field_key` (String)
 
 Optional:
 
-* `default` (String)
+- `default` (String)
+
 
 <a id="nestedatt--userinfo_fields--mobile_number"></a>
-
 ### Nested Schema for `userinfo_fields.mobile_number`
 
 Required:
 
-* `ext_field_key` (String)
+- `ext_field_key` (String)
 
 Optional:
 
-* `default` (String)
+- `default` (String)
+
 
 <a id="nestedatt--userinfo_fields--name"></a>
-
 ### Nested Schema for `userinfo_fields.name`
 
 Required:
 
-* `ext_field_key` (String)
+- `ext_field_key` (String)
 
 Optional:
 
-* `default` (String)
+- `default` (String)
+
 
 <a id="nestedatt--userinfo_fields--nickname"></a>
-
 ### Nested Schema for `userinfo_fields.nickname`
 
 Required:
 
-* `ext_field_key` (String)
+- `ext_field_key` (String)
 
 Optional:
 
-* `default` (String)
+- `default` (String)
+
 
 <a id="nestedatt--userinfo_fields--phone_number"></a>
-
 ### Nested Schema for `userinfo_fields.phone_number`
 
 Required:
 
-* `ext_field_key` (String)
+- `ext_field_key` (String)
 
 Optional:
 
-* `default` (String)
+- `default` (String)
+
 
 <a id="nestedatt--userinfo_fields--picture"></a>
-
 ### Nested Schema for `userinfo_fields.picture`
 
 Required:
 
-* `ext_field_key` (String)
+- `ext_field_key` (String)
 
 Optional:
 
-* `default` (String)
+- `default` (String)
+
 
 <a id="nestedatt--userinfo_fields--preferred_username"></a>
-
 ### Nested Schema for `userinfo_fields.preferred_username`
 
 Required:
 
-* `ext_field_key` (String)
+- `ext_field_key` (String)
 
 Optional:
 
-* `default` (String)
+- `default` (String)
+
 
 <a id="nestedatt--userinfo_fields--profile"></a>
-
 ### Nested Schema for `userinfo_fields.profile`
 
 Required:
 
-* `ext_field_key` (String)
+- `ext_field_key` (String)
 
 Optional:
 
-* `default` (String)
+- `default` (String)
+
 
 <a id="nestedatt--userinfo_fields--sub"></a>
-
 ### Nested Schema for `userinfo_fields.sub`
 
 Required:
 
-* `ext_field_key` (String)
+- `ext_field_key` (String)
 
 Optional:
 
-* `default` (String)
+- `default` (String)
+
 
 <a id="nestedatt--userinfo_fields--updated_at"></a>
-
 ### Nested Schema for `userinfo_fields.updated_at`
 
 Required:
 
-* `ext_field_key` (String)
+- `ext_field_key` (String)
 
 Optional:
 
-* `default` (String)
+- `default` (String)
+
 
 <a id="nestedatt--userinfo_fields--website"></a>
-
 ### Nested Schema for `userinfo_fields.website`
 
 Required:
 
-* `ext_field_key` (String)
+- `ext_field_key` (String)
 
 Optional:
 
-* `default` (String)
+- `default` (String)
+
 
 <a id="nestedatt--userinfo_fields--zoneinfo"></a>
-
 ### Nested Schema for `userinfo_fields.zoneinfo`
 
 Required:
 
-* `ext_field_key` (String)
+- `ext_field_key` (String)
 
 Optional:
 
-* `default` (String)
+- `default` (String)
 
 ## Import
 
@@ -1859,26 +1906,28 @@ resource "cidaas_template_group" "sample-tg-2" {
     from_name  = "Kube-dev"
     reply_to   = "noreply@cidaas.de"
     sender_names = [
-      "SYSTEM",
+      "System",
     ]
   }
   ivr_sender_config = {
     sender_names = [
-      "SYSTEM",
+      "System",
     ]
   }
   push_sender_config = {
     sender_names = [
-      "SYSTEM",
+      "System",
     ]
   }
   sms_sender_config = {
     sender_names = [
-      "SYSTEM",
+      "System",
     ]
   }
 }
 ```
+
+Warning: Using "SYSTEM" instead of "System" as `sender_names` will cause Terraform to fail with 500 error (code: 35001).
 
 <!-- schema generated by tfplugindocs -->
 ## Schema
@@ -2040,6 +2089,7 @@ resource "cidaas_template" "system-template-2" {
 * `subject` (String) Applicable only for template_type EMAIL. It represents the subject of an email.
 * `usage_type` (String) The usage_type attribute specifies the specific use case or application for the template. Only applicable for SYSTEM templates. It should be set to `GENERAL` when cidaas does not provide an allowed list of values.
 * `verification_type` (String) The verification_type attribute defines the method used for verification. Only applicable for SYSTEM templates.
+* `enabled` (Boolean) A boolean flag enable or disable a template.
 
 ### Read-Only
 

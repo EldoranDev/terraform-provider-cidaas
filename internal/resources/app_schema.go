@@ -3,7 +3,6 @@ package resources
 import (
 	"regexp"
 
-	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -81,21 +80,22 @@ var resourceAppSchema = schema.Schema{
 			},
 		},
 		"allow_login_with": schema.SetAttribute{
-			ElementType: types.StringType,
-			Optional:    true,
-			MarkdownDescription: "allow_login_with is used to specify the preferred methods of login allowed for a client. Allowed values are EMAIL, MOBILE and USER_NAME" +
-				"The default is set to `['EMAIL', 'MOBILE', 'USER_NAME']`.",
-			Validators: []validator.Set{
-				setvalidator.ValueStringsAre(
-					stringvalidator.OneOf([]string{"EMAIL", "MOBILE", "USER_NAME"}...),
-				),
-			},
+			ElementType:         types.StringType,
+			Optional:            true,
+			MarkdownDescription: "allow_login_with is used to specify the preferred methods of login allowed for a client.",
 		},
 		// optional for NON_INTERACTIVE/IOS/ANDROID/DESKTOP/MOBILE/WINDOWS_MOBILE/DEVICE
 		"redirect_uris": schema.SetAttribute{
 			ElementType:         types.StringType,
 			Optional:            true,
 			MarkdownDescription: "Redirect URIs for OAuth2 client.",
+		},
+		"oauth_standard": schema.StringAttribute{
+			Optional:            true,
+			MarkdownDescription: "Specifies the OAuth standard version to use. Allowed values: 'OAuth2.1', 'OAuth2.0'",
+			Validators: []validator.String{
+				stringvalidator.OneOf([]string{"OAuth2.1", "OAuth2.0"}...),
+			},
 		},
 		// optional for NON_INTERACTIVE/IOS/ANDROID/DESKTOP/MOBILE/WINDOWS_MOBILE/DEVICE
 		"allowed_logout_urls": schema.SetAttribute{
@@ -389,6 +389,9 @@ var resourceAppSchema = schema.Schema{
 			ElementType: types.StringType,
 			Optional:    true,
 		},
+		"is_group_login_selection_enabled": schema.BoolAttribute{
+			Optional: true,
+		},
 		"group_selection": schema.SingleNestedAttribute{
 			Optional: true,
 			Attributes: map[string]schema.Attribute{
@@ -646,6 +649,10 @@ var resourceAppSchema = schema.Schema{
 								Optional:            true,
 								MarkdownDescription: "The unique ID of the user group.",
 							},
+							"group_type": schema.StringAttribute{
+								Optional:            true,
+								MarkdownDescription: "The unique ID of the user group.",
+							},
 							"role_filter": schema.SingleNestedAttribute{
 								Optional:            true,
 								MarkdownDescription: "A filter for roles within the group.",
@@ -703,6 +710,9 @@ var providerMetadDataSchema = schema.NestedAttributeObject{
 var allowedGroupsSchema = schema.NestedAttributeObject{
 	Attributes: map[string]schema.Attribute{
 		"group_id": schema.StringAttribute{
+			Optional: true,
+		},
+		"group_type": schema.StringAttribute{
 			Optional: true,
 		},
 		"roles": schema.SetAttribute{

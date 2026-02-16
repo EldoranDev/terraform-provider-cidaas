@@ -19,6 +19,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
 var (
@@ -40,6 +41,7 @@ type TemplateConfig struct {
 	Language         types.String `tfsdk:"language"`
 	GroupID          types.String `tfsdk:"group_id"`
 	IsSystemTemplate types.Bool   `tfsdk:"is_system_template"`
+	Enabled          types.Bool   `tfsdk:"enabled"`
 }
 
 type TemplateResource struct {
@@ -78,8 +80,8 @@ var templateSchema = schema.Schema{
 			Validators: []validator.String{
 				stringvalidator.OneOf(
 					func() []string {
-						validLocals := make([]string, len(util.Locals))
-						for i, locale := range util.Locals {
+						validLocals := make([]string, len(util.Locales))
+						for i, locale := range util.Locales {
 							validLocals[i] = strings.ToLower(locale.LocaleString)
 						}
 						return validLocals
@@ -163,6 +165,15 @@ var templateSchema = schema.Schema{
 				&systemTemplateValidator{},
 			},
 		},
+		"enabled": schema.BoolAttribute{
+			Optional:            true,
+			Computed:            true,
+			MarkdownDescription: "A boolean flag to enable or disable the template.",
+			Default:             booldefault.StaticBool(true),
+			PlanModifiers: []planmodifier.Bool{
+				&systemTemplateValidator{},
+			},
+		},
 	},
 }
 
@@ -200,16 +211,26 @@ func (r *TemplateResource) Create(ctx context.Context, req resource.CreateReques
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
 	cidaasClient = r.cidaasClient // global variable cidaasClient is assigned here
-	resp.Diagnostics.Append(validateSystemTemplateConfig(config)...)
+	resp.Diagnostics.Append(validateSystemTemplateConfig(ctx, config)...)
 	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "failed to prepare template or validate configuration", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
 		return
 	}
 	template := prepareTemplateModel(plan)
-	res, err := r.cidaasClient.Template.Upsert(*template, plan.IsSystemTemplate.ValueBool())
+	res, err := r.cidaasClient.Templates.Upsert(ctx, *template, plan.IsSystemTemplate.ValueBool())
 	if err != nil {
+		tflog.Error(ctx, "failed to create template via API", util.H{
+			"error": err.Error(),
+		})
 		resp.Diagnostics.AddError("failed to create template", util.FormatErrorMessage(err))
 		return
 	}
+	tflog.Info(ctx, "successfully created template via API", util.H{
+		"template_id": res.Data.ID,
+	})
+
 	plan.ID = util.StringValueOrNull(&res.Data.ID)
 	plan.TemplateOwner = util.StringValueOrNull(&res.Data.TemplateOwner)
 	plan.Language = util.StringValueOrNull(&res.Data.Language)
@@ -217,14 +238,27 @@ func (r *TemplateResource) Create(ctx context.Context, req resource.CreateReques
 	plan.GroupID = util.StringValueOrNull(&res.Data.GroupID)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "failed to set state", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
+		return
+	}
+
+	tflog.Info(ctx, "resource template created successfully", util.H{
+		"template_id": res.Data.ID,
+	})
 }
 
 func (r *TemplateResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var state TemplateConfig
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	cidaasClient = r.cidaasClient // global variable cidaasClient is assigned here
-	resp.Diagnostics.Append(validateSystemTemplateConfig(state)...)
+	resp.Diagnostics.Append(validateSystemTemplateConfig(ctx, state)...)
 	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "failed to get state data or validate template configuration", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
 		return
 	}
 
@@ -241,26 +275,46 @@ func (r *TemplateResource) Read(ctx context.Context, req resource.ReadRequest, r
 		template.GroupID = state.GroupID.ValueString()
 	}
 
-	res, err := r.cidaasClient.Template.Get(template, state.IsSystemTemplate.ValueBool())
+	res, err := r.cidaasClient.Templates.Get(ctx, template, state.IsSystemTemplate.ValueBool())
 	if err != nil {
+		tflog.Error(ctx, "failed to read template via API", util.H{
+			"template_key": state.TemplateKey.ValueString(),
+			"error":        err.Error(),
+		})
 		resp.Diagnostics.AddError("failed to read template", util.FormatErrorMessage(err))
 		return
 	}
+
 	state.ID = util.StringValueOrNull(&res.Data.ID)
 	state.TemplateOwner = util.StringValueOrNull(&res.Data.TemplateOwner)
 	state.UsageType = util.StringValueOrNull(&res.Data.UsageType)
 	state.Language = util.StringValueOrNull(&res.Data.Language)
 	state.GroupID = util.StringValueOrNull(&res.Data.GroupID)
 	state.Content = util.StringValueOrNull(&res.Data.Content)
+	state.Enabled = util.BoolValueOrNull(&res.Data.Enabled)
+
 	if state.TemplateOwner.ValueString() == "DEVELOPER" {
 		state.IsSystemTemplate = types.BoolValue(false)
 	}
+
 	if state.IsSystemTemplate.ValueBool() {
 		template.ProcessingType = state.ProcessingType.ValueString()
 		template.VerificationType = state.VerificationType.ValueString()
 	}
+
 	state.Subject = util.StringValueOrNull(&res.Data.Subject)
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "failed to set state", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
+		return
+	}
+
+	tflog.Debug(ctx, "resource template read successfully", util.H{
+		"template_id": res.Data.ID,
+	})
 }
 
 func (r *TemplateResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) { //nolint:dupl
@@ -268,40 +322,77 @@ func (r *TemplateResource) Update(ctx context.Context, req resource.UpdateReques
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	cidaasClient = r.cidaasClient // global variable cidaasClient is assigned here
-	resp.Diagnostics.Append(validateSystemTemplateConfig(plan)...)
+	resp.Diagnostics.Append(validateSystemTemplateConfig(ctx, plan)...)
 	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "failed to get plan/state data or validate template configuration", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
 		return
 	}
+
 	template := prepareTemplateModel(plan)
 	template.ID = state.ID.ValueString()
-	res, err := r.cidaasClient.Template.Upsert(*template, plan.IsSystemTemplate.ValueBool())
+	res, err := r.cidaasClient.Templates.Upsert(ctx, *template, plan.IsSystemTemplate.ValueBool())
 	if err != nil {
+		tflog.Error(ctx, "failed to update template via API", util.H{
+			"template_id": state.ID.ValueString(),
+			"error":       err.Error(),
+		})
 		resp.Diagnostics.AddError("failed to update template", util.FormatErrorMessage(err))
 		return
 	}
+	tflog.Info(ctx, "successfully updated template via API", util.H{
+		"template_id": state.ID.ValueString(),
+	})
+
 	plan.TemplateOwner = util.StringValueOrNull(&res.Data.TemplateOwner)
 	plan.UsageType = util.StringValueOrNull(&res.Data.UsageType)
 	plan.Language = util.StringValueOrNull(&res.Data.Language)
 	plan.GroupID = util.StringValueOrNull(&res.Data.GroupID)
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "failed to set state after update", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
+		return
+	}
+
+	tflog.Debug(ctx, "resource template updated successfully", util.H{
+		"template_id": state.ID.ValueString(),
+	})
 }
 
 func (r *TemplateResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var state TemplateConfig
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "failed to get state data for deletion", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
 		return
 	}
+
 	if state.IsSystemTemplate.ValueBool() {
 		resp.Diagnostics.AddWarning(
 			"The cidaas_template state has been destroyed. However, deleting system template for a specific template_key is not supported in cidaas system.",
 			"Alternatively, you can delete the template_group, but please note that this will remove all system templates within that group.",
 		)
 	} else {
-		err := r.cidaasClient.Template.Delete(state.TemplateKey.ValueString(), state.TemplateType.ValueString())
+		err := r.cidaasClient.Templates.Delete(ctx, state.TemplateKey.ValueString(), state.TemplateType.ValueString())
 		if err != nil {
+			tflog.Error(ctx, "Failed to delete template via API", util.H{
+				"template_key":  state.TemplateKey.ValueString(),
+				"template_type": state.TemplateType.ValueString(),
+				"error":         err.Error(),
+			})
 			resp.Diagnostics.AddError("failed to delete template", util.FormatErrorMessage(err))
+			return
 		}
+		tflog.Info(ctx, "resource template deleted successfully", util.H{
+			"template_key":  state.TemplateKey.ValueString(),
+			"template_type": state.TemplateType.ValueString(),
+		})
 	}
 }
 
@@ -328,7 +419,7 @@ func (r *TemplateResource) ImportState(ctx context.Context, req resource.ImportS
 		return
 	}
 
-	if !util.StringInSlice(templateType, allowedTemplateTypes) {
+	if !util.Contains(allowedTemplateTypes, templateType) {
 		resp.Diagnostics.AddError(
 			"Unexpected Import Identifier",
 			fmt.Sprintf("Invalid template_type provided in import identifier. Valid template_types %+v, got: %s", allowedTemplateTypes, templateType),
@@ -336,11 +427,11 @@ func (r *TemplateResource) ImportState(ctx context.Context, req resource.ImportS
 		return
 	}
 
-	validLocals := make([]string, len(util.Locals))
-	for i, l := range util.Locals {
+	validLocals := make([]string, len(util.Locales))
+	for i, l := range util.Locales {
 		validLocals[i] = strings.ToLower(l.LocaleString)
 	}
-	if !util.StringInSlice(locale, validLocals) {
+	if !util.Contains(validLocals, locale) {
 		resp.Diagnostics.AddError(
 			"Unexpected Import Identifier",
 			fmt.Sprintf("Invalid locale provided in import identifier. Valid locales %+v, got: %s", validLocals, locale),
@@ -366,6 +457,7 @@ func prepareTemplateModel(plan TemplateConfig) *cidaas.TemplateModel {
 	template.Subject = plan.Subject.ValueString()
 	template.UsageType = plan.UsageType.ValueString()
 	template.GroupID = plan.GroupID.ValueString()
+	template.Enabled = plan.Enabled.ValueBool()
 
 	template.ProcessingType = plan.ProcessingType.ValueString()
 	template.VerificationType = plan.VerificationType.ValueString()
@@ -422,10 +514,10 @@ func (v systemTemplateValidator) PlanModifyBool(ctx context.Context, req planmod
 	}
 }
 
-func validateSystemTemplateConfig(config TemplateConfig) diag.Diagnostics { //nolint:gocognit
+func validateSystemTemplateConfig(ctx context.Context, config TemplateConfig) diag.Diagnostics { //nolint:gocognit
 	var diags diag.Diagnostics
 	if config.IsSystemTemplate.ValueBool() {
-		masterList, err := cidaasClient.Template.GetMasterList(config.GroupID.ValueString())
+		masterList, err := cidaasClient.Templates.GetMasterList(ctx, config.GroupID.ValueString())
 		if err != nil {
 			diags.AddError(
 				fmt.Sprintf("Failed to read the settings list for the provided group_id %s. Please check whether the provided group_id is valid.", config.GroupID.ValueString()),
@@ -440,7 +532,7 @@ func validateSystemTemplateConfig(config TemplateConfig) diag.Diagnostics { //no
 			masterListMap[v.TemplateKey] = v
 		}
 
-		if !util.StringInSlice(config.TemplateKey.ValueString(), templateKeys) {
+		if !util.Contains(templateKeys, config.TemplateKey.ValueString()) {
 			diags.AddError(
 				"Unexpected Resource Configuration",
 				fmt.Sprintf("Invalid template_key for system template. The template_key must be one of %+v, got: %s", templateKeys, config.TemplateKey.ValueString()),
@@ -469,7 +561,7 @@ func validateSystemTemplateConfig(config TemplateConfig) diag.Diagnostics { //no
 			}
 			processingTypesByTemplateType[v.TemplateType] = p
 		}
-		if !util.StringInSlice(config.TemplateType.ValueString(), allowedTemplateTypes) {
+		if !util.Contains(allowedTemplateTypes, config.TemplateType.ValueString()) {
 			diags.AddError(
 				"Unexpected Resource Configuration",
 				fmt.Sprintf("Invalid template_type for system template %s. Allowed template types %+v, got: %s", config.TemplateKey.ValueString(), allowedTemplateTypes, config.TemplateType.ValueString()),
@@ -485,7 +577,7 @@ func validateSystemTemplateConfig(config TemplateConfig) diag.Diagnostics { //no
 				)
 				return diags
 			}
-			if !util.StringInSlice(config.ProcessingType.ValueString(), processingTypesByTemplateType[config.TemplateType.ValueString()]) {
+			if !util.Contains(processingTypesByTemplateType[config.TemplateType.ValueString()], config.ProcessingType.ValueString()) {
 				message := fmt.Sprintf("Invalid processing_type for system template with template_key %s and template_type %s.", config.TemplateKey.ValueString(), config.TemplateType.ValueString()) +
 					fmt.Sprintf("Allowed processing types %+v, got: %s", processingTypesByTemplateType[config.TemplateType.ValueString()], config.ProcessingType.String())
 				diags.AddError(
@@ -521,7 +613,7 @@ func validateSystemTemplateConfig(config TemplateConfig) diag.Diagnostics { //no
 				return diags
 			}
 
-			if !util.StringInSlice(config.VerificationType.ValueString(), allowedVerificationTypes) {
+			if !util.Contains(allowedVerificationTypes, config.VerificationType.ValueString()) {
 				message := fmt.Sprintf("Invalid verification_type for system template with template_key %s, template_type %s and processing_type %s.", config.TemplateKey.ValueString(), config.TemplateType.ValueString(), config.ProcessingType.ValueString()) +
 					fmt.Sprintf("Allowed verification_types %+v, got: %s", allowedVerificationTypes, config.VerificationType.String())
 				diags.AddError(
@@ -551,7 +643,7 @@ func validateSystemTemplateConfig(config TemplateConfig) diag.Diagnostics { //no
 				return diags
 			}
 
-			if !util.StringInSlice(config.UsageType.ValueString(), allowedUsageTypes) {
+			if !util.Contains(allowedUsageTypes, config.UsageType.ValueString()) {
 				message := fmt.Sprintf("Invalid usage_type for system template with template_key %s, template_type %s, processing_type %s and verification_type %s.", config.TemplateKey.ValueString(), config.TemplateType.ValueString(), config.ProcessingType.ValueString(), config.VerificationType.ValueString()) +
 					fmt.Sprintf("Allowed usage_types %+v, got: %s", allowedUsageTypes, config.UsageType.String())
 				diags.AddError(

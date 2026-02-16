@@ -1,53 +1,52 @@
 ## Changelog
 
-### 3.4.9 (Unreleased)
+### 3.5.4
 
-#### New Resource - Notification Service API Integration
+### Enhancements
 
-- **Added `cidaas_notification_template_type` resource**: New resource for managing template types using the notification-srv API
-  - **Create/Update**: `POST /templatetypes` (upsert - creates if ID doesn't exist, updates if it does)
-  - **Update**: `PUT /templatetypes/:id` (full update)
-  - **Patch**: `PATCH /templatetypes/:id` (partial update, e.g., for custom_attributes on system template types)
-  - **Get**: `GET /templatetypes/:id`
-  - **Delete**: `DELETE /templatetypes/:id`
-  - Uses the modern notification-srv API instead of legacy APIs
-  - Supports system template types (read-only, only custom_attributes can be modified via PATCH)
-  - Supports custom template types (full CRUD)
-  - API base: `notification-srv`
+- Added `group_type` attribute to the `group_role_restriction` in cidaas app resource.
 
-#### Usage
+### 3.5.3
 
-**System Template Type** (pre-provisioned, only custom_attributes can be modified):
-```hcl
-resource "cidaas_notification_template_type" "verify_user" {
-  template_key = "VERIFY_USER"  # System template type
-  
-  custom_attributes = {
-    "company_name" = "required"
-    "support_email" = "allowed"
-  }
-}
-```
+### Enhancements
 
-**Custom Template Type** (fully manageable):
-```hcl
-resource "cidaas_notification_template_type" "custom_notification" {
-  template_key   = "CUSTOM_NOTIFICATION"
-  category       = "custom"
-  description    = "Custom notification template type"
-  
-  communication_methods = ["EMAIL", "SMS"]
-  processing_types      = ["CODE", "LINK"]
-  
-  system_attributes = {
-    "code" = "required"
-  }
-  
-  custom_attributes = {
-    "company_name" = "allowed"
-  }
-}
-```
+- Enhanced logging and error handling across all resources and data sources
+
+### 3.5.2
+
+### Enhancements
+
+- Added `oauth_standard` attribute to the `cidaas_app` resource, allowing selection of the OAuth standard version between `OAuth2.0` and `OAuth2.1`.
+
+### 3.5.1
+
+### Bug Fixes
+
+- Fixed issue where `redirect_uris`, `allowed_logout_urls`, and `grant_types` fields were not being properly set during resource import based on client type requirements.
+- Changed `order` attribute from optional to computed-only as it is now automatically managed by the backend service and cannot be set or updated from the client side.
+- vulnerability fix
+
+### Security
+- Upgraded Go toolchain from 1.21.0 to 1.24.4 for provider build to fix known standard library vulnerabilities
+
+### 3.5.0
+- Added context support for proper HTTP request cancellation and timeout handling
+- Enhanced resource `cidaas_app` import to include all schema fields
+- Added support for new fields in `cidaas_custom_provider` resource: `groups`, `pkce`, `auth_type`, `apikey_details`, `totp_details`, `cidaas_auth_details`
+
+### 3.4.9
+
+### Bug Fixes
+
+- Added `is_group_login_selection_enabled` flag to the `cidaas_app` resource that removed earlier in v3.4.7, allowing to enable or disable group login selection
+
+### 3.4.8
+
+### Enhancements & Bug Fixes
+
+- Added `enabled` flag to the `cidaas_template` resource, allowing to activate or deactivate a template
+- Added support for custom values in `allow_login_with` attribute in `cidaas_app` resource
+- Fixed handling of null set/list attributes in `cidaas_app` resource by sending empty arrays in API requests
 
 ### 3.4.7
 
