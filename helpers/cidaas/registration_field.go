@@ -141,11 +141,12 @@ func (r *RegField) Delete(ctx context.Context, fieldKey string) error {
 func (r *RegField) GetAll(ctx context.Context) ([]RegistrationFieldConfig, error) {
 	var response AllRegFieldResponse
 	url := fmt.Sprintf("%s/%s", r.BaseURL, "fieldsetup-srv/graph/fields")
-	client, err := util.NewHTTPClient(url, http.MethodGet, r.AccessToken)
+	client, err := util.NewHTTPClient(url, http.MethodPost, r.AccessToken)
 	if err != nil {
 		return nil, err
 	}
-	res, err := client.MakeRequest(ctx, nil)
+	// fieldsetup-srv/graph/fields expects POST with optional JSON body (empty object for list all).
+	res, err := client.MakeRequest(ctx, map[string]interface{}{})
 	if err = util.HandleResponseError(res, err); err != nil {
 		return nil, err
 	}

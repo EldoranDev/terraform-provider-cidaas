@@ -733,9 +733,9 @@ func TestRegField_GetAll_Success(t *testing.T) {
 	}
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Verify request method and endpoint
-		if r.Method != http.MethodGet {
-			t.Errorf("Expected GET method, got %s", r.Method)
+		// Verify request method and endpoint (fieldsetup-srv/graph/fields expects POST)
+		if r.Method != http.MethodPost {
+			t.Errorf("Expected POST method, got %s", r.Method)
 		}
 
 		if !strings.Contains(r.URL.Path, "fieldsetup-srv/graph/fields") {
