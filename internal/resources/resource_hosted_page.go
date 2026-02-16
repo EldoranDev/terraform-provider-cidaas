@@ -59,7 +59,6 @@ type HostedPage struct {
 	HostedPageID types.String `tfsdk:"hosted_page_id"`
 	Locale       types.String `tfsdk:"locale"`
 	URL          types.String `tfsdk:"url"`
-	Content      types.String `tfsdk:"content"`
 }
 
 func (h *HostedPageConfig) extractHostedPages(ctx context.Context) diag.Diagnostics {
@@ -148,10 +147,6 @@ var hostedPageSchema = schema.Schema{
 					"url": schema.StringAttribute{
 						Required:            true,
 						MarkdownDescription: "The URL for the hosted page.",
-					},
-					"content": schema.StringAttribute{
-						Optional:            true,
-						MarkdownDescription: "The conent of the hosted page.",
 					},
 				},
 			},
@@ -245,7 +240,6 @@ func (r *HostedPageResource) Read(ctx context.Context, req resource.ReadRequest,
 			"hosted_page_id": types.StringType,
 			"locale":         types.StringType,
 			"url":            types.StringType,
-			"content":        types.StringType,
 		},
 	}
 
@@ -254,12 +248,10 @@ func (r *HostedPageResource) Read(ctx context.Context, req resource.ReadRequest,
 		hostedPageID := sc.HostedPageID
 		local := sc.Locale
 		url := sc.URL
-		content := sc.Content
 		objValue := types.ObjectValueMust(hostedPages.AttrTypes, map[string]attr.Value{
 			"hosted_page_id": util.StringValueOrNull(&hostedPageID),
 			"locale":         util.StringValueOrNull(&local),
 			"url":            util.StringValueOrNull(&url),
-			"content":        util.StringValueOrNull(&content),
 		})
 		objectValues = append(objectValues, objValue)
 	}
@@ -350,7 +342,6 @@ func prepareHostedPageModel(_ context.Context, plan HostedPageConfig) (*cidaas.H
 			HostedPageID: hp.HostedPageID.ValueString(),
 			Locale:       hp.Locale.ValueString(),
 			URL:          hp.URL.ValueString(),
-			Content:      hp.Content.ValueString(),
 		})
 	}
 	hostedPage.HostedPages = hps

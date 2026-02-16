@@ -1,6 +1,7 @@
 package cidaas
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -53,16 +54,19 @@ type TemplateTypeService interface {
 	Delete(id string) error
 }
 
-func NewTemplateType(clientConfig ClientConfig) TemplateTypeService {
+func NewTemplateType(clientConfig ClientConfig) *TemplateTypeServiceImpl {
 	return &TemplateTypeServiceImpl{clientConfig}
 }
 
 func (t *TemplateTypeServiceImpl) Upsert(templateType TemplateTypeModel) (*TemplateTypeResponse, error) {
 	var response TemplateTypeResponse
 	url := fmt.Sprintf("%s/templatetypes", t.BaseURL)
-	httpClient := util.NewHTTPClient(url, http.MethodPost, t.AccessToken)
+	httpClient, err := util.NewHTTPClient(url, http.MethodPost, t.AccessToken)
+	if err != nil {
+		return nil, err
+	}
 
-	res, err := httpClient.MakeRequest(templateType)
+	res, err := httpClient.MakeRequest(context.Background(), templateType)
 	if err = util.HandleResponseError(res, err); err != nil {
 		return nil, err
 	}
@@ -88,9 +92,12 @@ func (t *TemplateTypeServiceImpl) Get(id string) (*TemplateTypeResponse, error) 
 	var response TemplateTypeResponse
 	id = strings.ToUpper(id)
 	url := fmt.Sprintf("%s/templatetypes/%s", t.BaseURL, id)
-	httpClient := util.NewHTTPClient(url, http.MethodGet, t.AccessToken)
+	httpClient, err := util.NewHTTPClient(url, http.MethodGet, t.AccessToken)
+	if err != nil {
+		return nil, err
+	}
 
-	res, err := httpClient.MakeRequest(nil)
+	res, err := httpClient.MakeRequest(context.Background(), nil)
 	if err = util.HandleResponseError(res, err); err != nil {
 		return nil, err
 	}
@@ -120,9 +127,12 @@ func (t *TemplateTypeServiceImpl) Patch(patch TemplateTypePatchModel) (*Template
 	var response TemplateTypeResponse
 	id := strings.ToUpper(patch.ID)
 	url := fmt.Sprintf("%s/templatetypes/%s", t.BaseURL, id)
-	httpClient := util.NewHTTPClient(url, http.MethodPatch, t.AccessToken)
+	httpClient, err := util.NewHTTPClient(url, http.MethodPatch, t.AccessToken)
+	if err != nil {
+		return nil, err
+	}
 
-	res, err := httpClient.MakeRequest(patch)
+	res, err := httpClient.MakeRequest(context.Background(), patch)
 	if err = util.HandleResponseError(res, err); err != nil {
 		return nil, err
 	}
@@ -147,9 +157,12 @@ func (t *TemplateTypeServiceImpl) Patch(patch TemplateTypePatchModel) (*Template
 func (t *TemplateTypeServiceImpl) Delete(id string) error {
 	id = strings.ToUpper(id)
 	url := fmt.Sprintf("%s/templatetypes/%s", t.BaseURL, id)
-	httpClient := util.NewHTTPClient(url, http.MethodDelete, t.AccessToken)
+	httpClient, err := util.NewHTTPClient(url, http.MethodDelete, t.AccessToken)
+	if err != nil {
+		return err
+	}
 
-	res, err := httpClient.MakeRequest(nil)
+	res, err := httpClient.MakeRequest(context.Background(), nil)
 	if err = util.HandleResponseError(res, err); err != nil {
 		return err
 	}

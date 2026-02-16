@@ -140,7 +140,7 @@ func (r *RegField) Delete(ctx context.Context, fieldKey string) error {
 
 func (r *RegField) GetAll(ctx context.Context) ([]RegistrationFieldConfig, error) {
 	var response AllRegFieldResponse
-	url := fmt.Sprintf("%s/%s", r.BaseURL, "registration-setup-srv/fields/list")
+	url := fmt.Sprintf("%s/%s", r.BaseURL, "fieldsetup-srv/graph/fields")
 	client, err := util.NewHTTPClient(url, http.MethodGet, r.AccessToken)
 	if err != nil {
 		return nil, err

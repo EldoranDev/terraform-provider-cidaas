@@ -1,5 +1,17 @@
 ## Changelog
 
+### 3.5.5
+
+#### Enhancements
+
+- **Registration field data source:** The list endpoint for registration fields now uses `fieldsetup-srv/graph/fields` instead of `registration-setup-srv/fields/list`, aligning with the current Cidaas API.
+- **Notification template type:** The Cidaas client now exposes the template type service, enabling the `cidaas_notification_template_type` resource to manage template types via the provider.
+
+#### Bug Fixes
+
+- **Template type helper:** Corrected handling of `NewHTTPClient` return values (client and error) and updated all `MakeRequest` calls to pass `context.Context` as the first argument.
+- **Hosted page:** Removed the `content` attribute from the `cidaas_hosted_page` resource and from the hosted page API payload. This attribute is no longer supported by the Cidaas backend; existing configurations that set `content` should remove it to avoid schema errors.
+
 ### 3.5.4
 
 ### Enhancements

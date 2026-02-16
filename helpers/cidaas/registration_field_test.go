@@ -738,8 +738,8 @@ func TestRegField_GetAll_Success(t *testing.T) {
 			t.Errorf("Expected GET method, got %s", r.Method)
 		}
 
-		if !strings.Contains(r.URL.Path, "registration-setup-srv/fields/list") {
-			t.Errorf("Expected registration-setup-srv/fields/list endpoint, got %s", r.URL.Path)
+		if !strings.Contains(r.URL.Path, "fieldsetup-srv/graph/fields") {
+			t.Errorf("Expected fieldsetup-srv/graph/fields endpoint, got %s", r.URL.Path)
 		}
 
 		response := AllRegFieldResponse{

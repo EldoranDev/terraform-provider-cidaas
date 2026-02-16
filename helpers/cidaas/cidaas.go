@@ -11,27 +11,6 @@ import (
 )
 
 type Client struct {
-<<<<<<< HEAD
-	Role           RoleService
-	CustomProvider CustomProvideService
-	SocialProvider SocialProviderService
-	Scope          ScopeService
-	ScopeGroup     ScopeGroupService
-	ConsentGroup   ConsentGroupService
-	GroupType      GroupTypeService
-	UserGroup      UserGroupService
-	HostedPage     HostedPageService
-	Webhook        WebhookService
-	App            AppService
-	RegField       RegFieldService
-	TemplateGroup            TemplateGroupService
-	Template                 TemplateService
-	TemplateType             TemplateTypeService
-	NotificationTemplateType TemplateTypeService
-	PasswordPolicy           PasswordPolicyService
-	Consent        ConsentService
-	ConsentVersion ConsentVersionService
-=======
 	Roles          *Role
 	CustomProvider *CustomProvider
 	SocialProvider *SocialProvider
@@ -46,10 +25,10 @@ type Client struct {
 	RegFields      *RegField
 	TemplateGroup  *TemplateGroup
 	Templates      *Template
+	TemplateType   *TemplateTypeServiceImpl
 	PasswordPolicy *PasswordPolicy
 	Consent        *Consent
 	ConsentVersion *ConsentVersion
->>>>>>> master
 }
 
 type ClientConfig struct {
@@ -112,23 +91,13 @@ func NewClient(ctx context.Context, config ClientConfig) (*Client, error) {
 		UserGroup:      NewUserGroup(config),
 		HostedPages:    NewHostedPage(config),
 		Webhook:        NewWebhook(config),
-<<<<<<< HEAD
-		App:            NewApp(config),
-		RegField:       NewRegField(config),
-		TemplateGroup:            NewTemplateGroup(config),
-		Template:                 NewTemplate(config),
-		TemplateType:             NewTemplateType(config),
-		NotificationTemplateType: NewTemplateType(config),
-		SocialProvider:           NewSocialProvider(config),
-		PasswordPolicy:           NewPasswordPolicy(config),
-=======
 		Apps:           NewApp(config),
 		RegFields:      NewRegField(config),
 		TemplateGroup:  NewTemplateGroup(config),
 		Templates:      NewTemplate(config),
+		TemplateType:   NewTemplateType(config),
 		SocialProvider: NewSocialProvider(config),
 		PasswordPolicy: NewPasswordPolicy(config),
->>>>>>> master
 		ConsentGroup:   NewConsentGroup(config),
 		Consent:        NewConsent(config),
 		ConsentVersion: NewConsentVersion(config),
