@@ -29,8 +29,6 @@ type RegistrationField struct {
 	Internal      types.Bool   `tfsdk:"internal"`
 	ReadOnly      types.Bool   `tfsdk:"read_only"`
 	Required      types.Bool   `tfsdk:"required"`
-	Enabled       types.Bool   `tfsdk:"enabled"`
-	IsGroup       types.Bool   `tfsdk:"is_group"`
 	ParentGroupID types.String `tfsdk:"parent_group_id"`
 	FieldType     types.String `tfsdk:"field_type"`
 	Order         types.Int64  `tfsdk:"order"`
@@ -44,8 +42,6 @@ var registrationFieldsFilter = FilterConfig{
 	"required":        {TypeFunc: FilterTypeBool},
 	"internal":        {TypeFunc: FilterTypeBool},
 	"read_only":       {TypeFunc: FilterTypeBool},
-	"is_group":        {TypeFunc: FilterTypeBool},
-	"enabled":         {TypeFunc: FilterTypeBool},
 }
 
 var fieldSchema = map[string]schema.Attribute{
@@ -77,17 +73,9 @@ var fieldSchema = map[string]schema.Attribute{
 		Computed:            true,
 		MarkdownDescription: "Flag to identify if a field is internal.",
 	},
-	"enabled": schema.BoolAttribute{
-		Computed:            true,
-		MarkdownDescription: "Flag to identify if a field is enabled.",
-	},
 	"read_only": schema.BoolAttribute{
 		Computed:            true,
 		MarkdownDescription: "Flag to identify if a field is read only.",
-	},
-	"is_group": schema.BoolAttribute{
-		Computed:            true,
-		MarkdownDescription: "Flag to identify if a field is group field.",
 	},
 	"order": schema.Int64Attribute{
 		Computed:            true,
@@ -176,8 +164,6 @@ func parseRegistrationField(rf cidaas.RegistrationFieldConfig) (result Registrat
 	result.FieldKey = types.StringValue(rf.FieldKey)
 	result.DataType = types.StringValue(rf.DataType)
 	result.FieldType = types.StringValue(rf.FieldType)
-	result.Enabled = types.BoolValue(rf.Enabled)
-	result.IsGroup = types.BoolValue(rf.IsGroup)
 	result.Required = types.BoolValue(rf.Required)
 	result.ReadOnly = types.BoolValue(rf.ReadOnly)
 	result.Internal = types.BoolValue(rf.Internal)

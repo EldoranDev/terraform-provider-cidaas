@@ -63,7 +63,6 @@ type RegFieldConfig struct {
 	Unique                              types.Bool   `tfsdk:"unique"`
 	OverwriteWithNullFromSocialProvider types.Bool   `tfsdk:"overwrite_with_null_value_from_social_provider"`
 	ReadOnly                            types.Bool   `tfsdk:"read_only"`
-	IsGroup                             types.Bool   `tfsdk:"is_group"`
 	IsList                              types.Bool   `tfsdk:"is_list"`
 	Order                               types.Int64  `tfsdk:"order"`
 	Scopes                              types.Set    `tfsdk:"scopes"`
@@ -230,16 +229,6 @@ var regFieldSchema = schema.Schema{
 			Computed:            true,
 			MarkdownDescription: "Flag to mark if a field is read only. Defaults set to `false`",
 			Default:             booldefault.StaticBool(false),
-		},
-		"is_group": schema.BoolAttribute{
-			Optional: true,
-			Computed: true,
-			MarkdownDescription: "Setting is_group to `true` creates a registration field group. Defaults set to `false`" +
-				" The data_type attribute must be set to TEXT when is_group is true. ",
-			Default: booldefault.StaticBool(false),
-			Validators: []validator.Bool{
-				&isGroupValidator{},
-			},
 		},
 		"is_list": schema.BoolAttribute{
 			Optional: true,
@@ -501,7 +490,6 @@ func (r *RegFieldResource) Read(ctx context.Context, req resource.ReadRequest, r
 	state.Unique = util.BoolValueOrNull(&res.Data.Unique)
 	state.OverwriteWithNullFromSocialProvider = util.BoolValueOrNull(&res.Data.OverwriteWithNullValueFromSocialProvider)
 	state.ReadOnly = util.BoolValueOrNull(&res.Data.ReadOnly)
-	state.IsGroup = util.BoolValueOrNull(&res.Data.IsGroup)
 	state.IsList = util.BoolValueOrNull(&res.Data.IsList)
 	state.Scopes = util.SetValueOrNull(res.Data.Scopes)
 	state.ConsentRefs = util.SetValueOrNull(res.Data.ConsentRefs)
@@ -706,7 +694,6 @@ func prepareRegFieldModel(ctx context.Context, plan RegFieldConfig) (*cidaas.Reg
 	regConfig.IsSearchable = plan.IsSearchable.ValueBool()
 	regConfig.OverwriteWithNullValueFromSocialProvider = plan.OverwriteWithNullFromSocialProvider.ValueBool()
 	regConfig.Enabled = plan.Enabled.ValueBool()
-	regConfig.IsGroup = plan.IsGroup.ValueBool()
 	regConfig.IsList = plan.IsList.ValueBool()
 	regConfig.ParentGroupID = plan.ParentGroupID.ValueString()
 	regConfig.FieldType = plan.FieldType.ValueString()
@@ -809,7 +796,6 @@ var (
 	_ validator.String    = dateTypeValidator{}
 	_ validator.String    = dateValidator{}
 	_ validator.String    = dataTypeValidator{}
-	_ validator.Bool      = isGroupValidator{}
 	_ validator.String    = validateIsMaxMinMsgAvailableForRegex{}
 )
 
@@ -820,7 +806,6 @@ type (
 	dateTypeValidator                    struct{}
 	dateValidator                        struct{}
 	dataTypeValidator                    struct{}
-	isGroupValidator                     struct{}
 	validateIsMaxMinMsgAvailableForRegex struct{}
 )
 
@@ -867,7 +852,7 @@ func (v validateIsMaxMinMsgAvailableForRegex) ValidateString(ctx context.Context
 }
 
 func (v validateIsRequiredMsgAvailable) Description(_ context.Context) string {
-	return "msg is required when enabled is true"
+	return "msg is required when required is true"
 }
 
 func (v validateIsRequiredMsgAvailable) MarkdownDescription(ctx context.Context) string {
@@ -1102,27 +1087,6 @@ func (v dataTypeValidator) ValidateString(ctx context.Context, req validator.Str
 					fmt.Sprintf("param local_texts[i].attributes not allowed in config when the data_type is %s.", req.ConfigValue.ValueString()),
 				)
 			}
-		}
-	}
-}
-
-func (v isGroupValidator) Description(_ context.Context) string {
-	return "Validates a registration field group"
-}
-
-func (v isGroupValidator) MarkdownDescription(ctx context.Context) string {
-	return v.Description(ctx)
-}
-
-func (v isGroupValidator) ValidateBool(ctx context.Context, req validator.BoolRequest, resp *validator.BoolResponse) {
-	if !req.ConfigValue.IsNull() && req.ConfigValue.ValueBool() {
-		var config RegFieldConfig
-		resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
-		if config.DataType.ValueString() != "TEXT" {
-			resp.Diagnostics.AddError(
-				"Unexpected Resource Configuration",
-				"The data_type attribute must be set to TEXT when is_group is true. Setting is_group to true creates a registration field group.",
-			)
 		}
 	}
 }
