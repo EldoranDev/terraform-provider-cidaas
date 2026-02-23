@@ -29,6 +29,7 @@ type RegistrationField struct {
 	Internal      types.Bool   `tfsdk:"internal"`
 	ReadOnly      types.Bool   `tfsdk:"read_only"`
 	Required      types.Bool   `tfsdk:"required"`
+	Enabled       types.Bool   `tfsdk:"enabled"`
 	ParentGroupID types.String `tfsdk:"parent_group_id"`
 	FieldType     types.String `tfsdk:"field_type"`
 	Order         types.Int64  `tfsdk:"order"`
@@ -42,6 +43,7 @@ var registrationFieldsFilter = FilterConfig{
 	"required":        {TypeFunc: FilterTypeBool},
 	"internal":        {TypeFunc: FilterTypeBool},
 	"read_only":       {TypeFunc: FilterTypeBool},
+	"enabled":         {TypeFunc: FilterTypeBool},
 }
 
 var fieldSchema = map[string]schema.Attribute{
@@ -73,6 +75,11 @@ var fieldSchema = map[string]schema.Attribute{
 		Computed:            true,
 		MarkdownDescription: "Flag to identify if a field is internal.",
 	},
+	"enabled": schema.BoolAttribute{
+		Computed:            true,
+		MarkdownDescription: "Flag to identify if a field is enabled.",
+	},
+
 	"read_only": schema.BoolAttribute{
 		Computed:            true,
 		MarkdownDescription: "Flag to identify if a field is read only.",
