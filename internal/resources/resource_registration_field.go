@@ -736,7 +736,6 @@ func prepareRegFieldModel(ctx context.Context, plan RegFieldConfig) (*cidaas.Reg
 		for _, s := range source {
 			tempLocalText := &cidaas.LocaleText{
 				Locale:            s.Locale.ValueString(),
-				Language:          util.GetLanguageForLocale(s.Locale.ValueString()),
 				Name:              s.Name.ValueString(),
 				MaxLengthErrorMsg: s.MaxLengthMsg.ValueString(),
 				MinLengthErrorMsg: s.MinLengthMsg.ValueString(),
