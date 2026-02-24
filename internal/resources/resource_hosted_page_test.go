@@ -17,9 +17,10 @@ import (
 )
 
 const (
-	hostedPageURL   = "https://cidaad.de/register_success"
-	hostedPageID    = "register_success"
-	defaultLocale   = "en-US"
+	hostedPageURL     = "https://cidaad.de/register_success"
+	hostedPageID      = "register_success"
+	hostedPageContent = "<html>Register Success</html>"
+	defaultLocale     = "en-US"
 )
 
 var (
@@ -28,6 +29,7 @@ var (
 			"hosted_page_id": hostedPageID,
 			"locale":         defaultLocale,
 			"url":            hostedPageURL,
+			"content":        hostedPageContent,
 		},
 	}
 )
@@ -42,6 +44,7 @@ func TestAccHostedPageResource_Basic(t *testing.T) {
 			"hosted_page_id": hostedPageID,
 			"locale":         defaultLocale,
 			"url":            updatedHostedPageURL,
+			"content":        "<html>Updated Success</html>",
 		},
 	}
 
@@ -69,6 +72,7 @@ func TestAccHostedPageResource_Basic(t *testing.T) {
 					resource.TestCheckResourceAttr(testResourceName, "hosted_pages.0.hosted_page_id", hostedPageID),
 					resource.TestCheckResourceAttr(testResourceName, "hosted_pages.0.locale", defaultLocale),
 					resource.TestCheckResourceAttr(testResourceName, "hosted_pages.0.url", hostedPageURL),
+					resource.TestCheckResourceAttr(testResourceName, "hosted_pages.0.content", hostedPageContent),
 				),
 			},
 			{
@@ -82,6 +86,7 @@ func TestAccHostedPageResource_Basic(t *testing.T) {
 					resource.TestCheckResourceAttr(testResourceName, "hosted_pages.0.hosted_page_id", hostedPageID),
 					resource.TestCheckResourceAttr(testResourceName, "hosted_pages.0.locale", defaultLocale),
 					resource.TestCheckResourceAttr(testResourceName, "hosted_pages.0.url", hostedPageURL),
+					resource.TestCheckResourceAttr(testResourceName, "hosted_pages.0.content", hostedPageContent),
 				),
 			},
 			{
@@ -93,6 +98,7 @@ func TestAccHostedPageResource_Basic(t *testing.T) {
 				),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(testResourceName, "hosted_pages.0.url", updatedHostedPageURL),
+					resource.TestCheckResourceAttr(testResourceName, "hosted_pages.0.content", "<html>Updated Success</html>"),
 				),
 			},
 		},
@@ -113,6 +119,7 @@ func testAccHostedPageResourceConfig(hostedPageGroupName, defaultLocale, resourc
 				hosted_page_id = "`+hostedPages[0]["hosted_page_id"]+`"
 				locale = "`+hostedPages[0]["locale"]+`"
 				url = "`+hostedPages[0]["url"]+`"
+				content = "`+hostedPages[0]["content"]+`"
 				}
 			]
 		}
@@ -355,8 +362,10 @@ func TestAccHostedPageResource_UniqueIdentifier(t *testing.T) {
 // 				Check: resource.ComposeAggregateTestCheckFunc(
 // 					resource.TestCheckResourceAttr(resourceHostedPage, "hosted_pages.0.hosted_page_id", hostedPageID),
 // 					resource.TestCheckResourceAttr(resourceHostedPage, "hosted_pages.0.url", hostedPageURL),
+// 					resource.TestCheckResourceAttr(resourceHostedPage, "hosted_pages.0.content", hostedPageContent),
 // 					resource.TestCheckResourceAttr(resourceHostedPage, "hosted_pages.1.hosted_page_id", hostedPageID2),
 // 					resource.TestCheckResourceAttr(resourceHostedPage, "hosted_pages.1.url", hostedPageURL2),
+// 					resource.TestCheckResourceAttr(resourceHostedPage, "hosted_pages.1.content", hostedPageContent2),
 // 				),
 // 			},
 // 		},

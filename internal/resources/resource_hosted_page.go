@@ -151,8 +151,7 @@ var hostedPageSchema = schema.Schema{
 					},
 					"content": schema.StringAttribute{
 						Optional:            true,
-						Computed:            true,
-						MarkdownDescription: "HTML or template content for the hosted page. Supported for state compatibility; may be deprecated in a future version.",
+						MarkdownDescription: "The conent of the hosted page.",
 					},
 				},
 			},
@@ -347,12 +346,11 @@ func prepareHostedPageModel(_ context.Context, plan HostedPageConfig) (*cidaas.H
 	}
 	var hps []cidaas.HostedPageData
 	for _, hp := range plan.hostedPages {
-		content := hp.Content.ValueString()
 		hps = append(hps, cidaas.HostedPageData{
 			HostedPageID: hp.HostedPageID.ValueString(),
 			Locale:       hp.Locale.ValueString(),
 			URL:          hp.URL.ValueString(),
-			Content:      content,
+			Content:      hp.Content.ValueString(),
 		})
 	}
 	hostedPage.HostedPages = hps
