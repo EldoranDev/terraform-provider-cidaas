@@ -22,7 +22,7 @@ func TestRegistrationField_CheckBoxBasic(t *testing.T) {
 		ProtoV6ProviderFactories: acctest.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testRegFieldConfig("CHECKBOX", fieldKey, true, false),
+				Config: testRegFieldConfig("CHECKBOX", fieldKey, true),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(testResourceName, "field_key", fieldKey),
 					resource.TestCheckResourceAttrSet(testResourceName, "id"),
@@ -35,7 +35,7 @@ func TestRegistrationField_CheckBoxBasic(t *testing.T) {
 				ImportStateId:     fieldKey,
 			},
 			{
-				Config: testRegFieldConfig("CHECKBOX", fieldKey, false, false),
+				Config: testRegFieldConfig("CHECKBOX", fieldKey, false),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(testResourceName, "id"),
 				),
@@ -55,7 +55,7 @@ func TestRegistrationField_GroupBasic(t *testing.T) {
 		ProtoV6ProviderFactories: acctest.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testRegFieldConfig("TEXT", fieldKey, true, true),
+				Config: testRegFieldConfig("TEXT", fieldKey, true),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(testResourceName, "field_key", fieldKey),
 					resource.TestCheckResourceAttrSet(testResourceName, "id"),
@@ -68,7 +68,7 @@ func TestRegistrationField_GroupBasic(t *testing.T) {
 				ImportStateId:     fieldKey,
 			},
 			{
-				Config: testRegFieldConfig("TEXT", fieldKey, false, true),
+				Config: testRegFieldConfig("TEXT", fieldKey, false),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(testResourceName, "id"),
 				),
@@ -99,7 +99,6 @@ func TestRegistrationField_TextBasic(t *testing.T) {
 					internal                                       = true      // Default: false
 					required                                       = true      // Default: false
 					read_only                                      = true      // Default: false
-					is_group                                       = false     // Default: false
 					unique                                         = true      // Default: false
 					overwrite_with_null_value_from_social_provider = false     // Default: true
 					is_searchable                                  = true      // Default: true
@@ -143,7 +142,7 @@ func TestRegistrationField_TextBasic(t *testing.T) {
 	})
 }
 
-func testRegFieldConfig(dataType, fieldKey string, internal, isGroup bool) string {
+func testRegFieldConfig(dataType, fieldKey string, internal bool) string {
 	return fmt.Sprintf(`
 		provider "cidaas" {
 			base_url = "%s"
@@ -155,7 +154,6 @@ func testRegFieldConfig(dataType, fieldKey string, internal, isGroup bool) strin
 			internal                                       = %s
 			required                                       = true
 			read_only                                      = true
-			is_group                                       = %s
 			unique                                         = true
 			overwrite_with_null_value_from_social_provider = false
 			is_searchable                                  = true
@@ -176,7 +174,7 @@ func testRegFieldConfig(dataType, fieldKey string, internal, isGroup bool) strin
 				}
 			]
 		}				
-	`, acctest.GetBaseURL(), fieldKey, dataType, fieldKey, strconv.FormatBool(internal), strconv.FormatBool(isGroup))
+	`, acctest.GetBaseURL(), fieldKey, dataType, fieldKey, strconv.FormatBool(internal))
 }
 
 func TestRegistrationField_SelectBasic(t *testing.T) {
@@ -201,7 +199,6 @@ func TestRegistrationField_SelectBasic(t *testing.T) {
 					internal                                       = false
 					required                                       = true
 					read_only                                      = false
-					is_group                                       = false
 					unique                                         = false
 					overwrite_with_null_value_from_social_provider = false
 					is_searchable                                  = true

@@ -25,6 +25,7 @@ type Client struct {
 	RegFields      *RegField
 	TemplateGroup  *TemplateGroup
 	Templates      *Template
+	TemplateType   *TemplateTypeServiceImpl
 	PasswordPolicy *PasswordPolicy
 	Consent        *Consent
 	ConsentVersion *ConsentVersion
@@ -94,6 +95,7 @@ func NewClient(ctx context.Context, config ClientConfig) (*Client, error) {
 		RegFields:      NewRegField(config),
 		TemplateGroup:  NewTemplateGroup(config),
 		Templates:      NewTemplate(config),
+		TemplateType:   NewTemplateType(config),
 		SocialProvider: NewSocialProvider(config),
 		PasswordPolicy: NewPasswordPolicy(config),
 		ConsentGroup:   NewConsentGroup(config),

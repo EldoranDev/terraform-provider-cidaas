@@ -1,5 +1,34 @@
 ## Changelog
 
+### 3.5.6
+
+#### Enhancements
+
+- **Registration field data source:** The `cidaas_registration_field` data source now exposes the `enabled` attribute from the fieldsetup API, so you can filter and read whether each field is enabled.
+- **Registration field resource:** Added support for remote field settings (GROUPING type) with `RemoteFieldSettings`, `ApiClientSetup`, `APIAccessSetup`, and auth detail types (APIKEY, TOTP, BASIC_AUTH, OAuth2). `RemoteSettings` is now part of `RegistrationFieldConfig`.
+
+#### Bug Fixes
+
+- **Registration field:** Removed the `is_group` attribute from the registration field data source and resource; it is no longer part of the fieldsetup/API contract.
+- **Registration field / LocaleText:** The `Language` field has been removed from `LocaleText` and is no longer sent in registration field API payloads or set in the provider, aligning with the current Cidaas backend.
+- **Tests:** Updated test cases for registration fields and hosted page to match current API and schema behavior.
+
+### 3.5.5
+
+#### Enhancements
+
+- **Registration field data source:** The list endpoint for registration fields now uses `fieldsetup-srv/graph/fields` instead of `registration-setup-srv/fields/list`, aligning with the current Cidaas API.
+- **Notification template type:** The Cidaas client now exposes the template type service, enabling the `cidaas_notification_template_type` resource to manage template types via the provider.
+
+#### Bug Fixes
+
+- **Template type helper:** Corrected handling of `NewHTTPClient` return values (client and error) and updated all `MakeRequest` calls to pass `context.Context` as the first argument.
+- **Hosted page:** Removed the `content` attribute from the `cidaas_hosted_page` resource and from the hosted page API payload. This attribute is no longer supported by the Cidaas backend; existing configurations that set `content` should remove it to avoid schema errors.
+
+#### Upgrade notes (3.5.4 → 3.5.5)
+
+- If you use `cidaas_hosted_page` with a `content` attribute, remove that attribute from your configuration before upgrading. The provider schema no longer accepts `content`; after removing it, run `terraform plan` to confirm no other changes.
+
 ### 3.5.4
 
 ### Enhancements
