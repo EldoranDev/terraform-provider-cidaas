@@ -1,5 +1,18 @@
 ## Changelog
 
+### 3.5.6
+
+#### Enhancements
+
+- **Registration field data source:** The `cidaas_registration_field` data source now exposes the `enabled` attribute from the fieldsetup API, so you can filter and read whether each field is enabled.
+- **Registration field resource:** Added support for remote field settings (GROUPING type) with `RemoteFieldSettings`, `ApiClientSetup`, `APIAccessSetup`, and auth detail types (APIKEY, TOTP, BASIC_AUTH, OAuth2). `RemoteSettings` is now part of `RegistrationFieldConfig`.
+
+#### Bug Fixes
+
+- **Registration field:** Removed the `is_group` attribute from the registration field data source and resource; it is no longer part of the fieldsetup/API contract.
+- **Registration field / LocaleText:** The `Language` field has been removed from `LocaleText` and is no longer sent in registration field API payloads or set in the provider, aligning with the current Cidaas backend.
+- **Tests:** Updated test cases for registration fields and hosted page to match current API and schema behavior.
+
 ### 3.5.5
 
 #### Enhancements

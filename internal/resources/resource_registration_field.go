@@ -69,9 +69,59 @@ type RegFieldConfig struct {
 	ConsentRefs                         types.Set    `tfsdk:"consent_refs"`
 	LocalTexts                          types.List   `tfsdk:"local_texts"`
 	FieldDefinition                     types.Object `tfsdk:"field_definition"`
+	RemoteFieldSettings                 types.Object `tfsdk:"remote_field_settings"`
 
-	localTexts      []*LocalTexts
-	fieldDefinition *FieldDefinition
+	localTexts         []*LocalTexts
+	fieldDefinition    *FieldDefinition
+	remoteFieldSettings *RemoteFieldSettingsConfig
+}
+
+// RemoteFieldSettingsConfig holds Terraform config for remote_field_settings (GROUPING only).
+type RemoteFieldSettingsConfig struct {
+	CallOnce       types.Bool    `tfsdk:"call_once"`
+	ApiClientSetup types.Object  `tfsdk:"api_client_setup"`
+	apiClientSetup *ApiClientSetupConfig
+}
+
+// ApiClientSetupConfig holds Terraform config for api_client_setup.
+type ApiClientSetupConfig struct {
+	CommunicationEP  types.String `tfsdk:"communication_ep"`
+	HTTPMethod       types.String `tfsdk:"http_method"`
+	APIAccessType    types.String `tfsdk:"api_access_type"`
+	ApikeyConfig     types.Object `tfsdk:"apikey_config"`
+	TotpConfig       types.Object `tfsdk:"totp_config"`
+	BasicAuthConfig  types.Object `tfsdk:"basic_auth_config"`
+	CidaasOAuth2Config types.Object `tfsdk:"cidaas_oauth2_config"`
+	GenOAuth2Config  types.Object `tfsdk:"gen_oauth2_config"`
+}
+
+type ApikeyConfig struct {
+	Apikey            types.String `tfsdk:"apikey"`
+	ApikeyPlaceholder types.String `tfsdk:"apikey_placeholder"`
+	ApikeyPlacement   types.String `tfsdk:"apikey_placement"`
+}
+
+type TotpConfig struct {
+	TotpKey         types.String `tfsdk:"totpkey"`
+	TotpPlaceholder types.String `tfsdk:"totp_placeholder"`
+	TotpPlacement   types.String `tfsdk:"totp_placement"`
+}
+
+type BasicAuthConfig struct {
+	User     types.String `tfsdk:"user"`
+	Password types.String `tfsdk:"password"`
+}
+
+type CidaasOAuth2Config struct {
+	ClientID  types.String `tfsdk:"client_id"`
+	ReqScopes types.String `tfsdk:"req_scopes"`
+}
+
+type GenOAuth2Config struct {
+	ClientID     types.String `tfsdk:"client_id"`
+	ClientSecret types.String `tfsdk:"client_secret"`
+	WellknownURL types.String `tfsdk:"wellknown_url"`
+	ReqScopes    types.String `tfsdk:"req_scopes"`
 }
 
 type LocalTexts struct {
@@ -399,6 +449,77 @@ var regFieldSchema = schema.Schema{
 				})),
 		},
 	},
+	Blocks: map[string]schema.Block{
+		"remote_field_settings": schema.SingleNestedBlock{
+			MarkdownDescription: "Remote field settings for GROUPING fields that fetch data from an external API. Only valid when data_type is GROUPING.",
+			Attributes: map[string]schema.Attribute{
+				"call_once": schema.BoolAttribute{
+					Optional:            true,
+					MarkdownDescription: "When true, the remote API is called once per session.",
+				},
+			},
+			Blocks: map[string]schema.Block{
+				"api_client_setup": schema.SingleNestedBlock{
+					MarkdownDescription: "API client configuration for the remote endpoint.",
+					Attributes: map[string]schema.Attribute{
+						"communication_ep": schema.StringAttribute{
+							Optional:            true,
+							MarkdownDescription: "The remote API endpoint URL. Supports {{sub}} placeholder.",
+						},
+						"http_method": schema.StringAttribute{
+							Optional:            true,
+							MarkdownDescription: "HTTP method (e.g. GET, POST).",
+						},
+						"api_access_type": schema.StringAttribute{
+							Optional:            true,
+							MarkdownDescription: "Authentication type: APIKEY, TOTP, BASIC_AUTH, CIDAAS_OAUTH2, or GEN_OAUTH2.",
+						},
+					},
+					Blocks: map[string]schema.Block{
+						"apikey_config": schema.SingleNestedBlock{
+							MarkdownDescription: "Required when api_access_type is APIKEY.",
+							Attributes: map[string]schema.Attribute{
+								"apikey":             schema.StringAttribute{Optional: true},
+								"apikey_placeholder": schema.StringAttribute{Optional: true},
+								"apikey_placement":   schema.StringAttribute{Optional: true},
+							},
+						},
+						"totp_config": schema.SingleNestedBlock{
+							MarkdownDescription: "Required when api_access_type is TOTP.",
+							Attributes: map[string]schema.Attribute{
+								"totpkey":          schema.StringAttribute{Optional: true},
+								"totp_placeholder": schema.StringAttribute{Optional: true},
+								"totp_placement":   schema.StringAttribute{Optional: true},
+							},
+						},
+						"basic_auth_config": schema.SingleNestedBlock{
+							MarkdownDescription: "Required when api_access_type is BASIC_AUTH.",
+							Attributes: map[string]schema.Attribute{
+								"user":     schema.StringAttribute{Optional: true},
+								"password": schema.StringAttribute{Optional: true},
+							},
+						},
+						"cidaas_oauth2_config": schema.SingleNestedBlock{
+							MarkdownDescription: "Required when api_access_type is CIDAAS_OAUTH2.",
+							Attributes: map[string]schema.Attribute{
+								"client_id":  schema.StringAttribute{Optional: true},
+								"req_scopes": schema.StringAttribute{Optional: true},
+							},
+						},
+						"gen_oauth2_config": schema.SingleNestedBlock{
+							MarkdownDescription: "Required when api_access_type is GEN_OAUTH2.",
+							Attributes: map[string]schema.Attribute{
+								"client_id":      schema.StringAttribute{Optional: true},
+								"client_secret":  schema.StringAttribute{Optional: true},
+								"wellknown_url":  schema.StringAttribute{Optional: true},
+								"req_scopes":     schema.StringAttribute{Optional: true},
+							},
+						},
+					},
+				},
+			},
+		},
+	},
 }
 
 func (rfc *RegFieldConfig) ExtractConfigs(ctx context.Context) diag.Diagnostics {
@@ -420,6 +541,14 @@ func (rfc *RegFieldConfig) ExtractConfigs(ctx context.Context) diag.Diagnostics 
 				localText.consent = &Consent{}
 				diags.Append(localText.ConsentLabel.As(ctx, localText.consent, basetypes.ObjectAsOptions{})...)
 			}
+		}
+	}
+	if !rfc.RemoteFieldSettings.IsNull() && !rfc.RemoteFieldSettings.IsUnknown() {
+		rfc.remoteFieldSettings = &RemoteFieldSettingsConfig{}
+		diags.Append(rfc.RemoteFieldSettings.As(ctx, rfc.remoteFieldSettings, basetypes.ObjectAsOptions{})...)
+		if rfc.remoteFieldSettings != nil && !rfc.remoteFieldSettings.ApiClientSetup.IsNull() && !rfc.remoteFieldSettings.ApiClientSetup.IsUnknown() {
+			rfc.remoteFieldSettings.apiClientSetup = &ApiClientSetupConfig{}
+			diags.Append(rfc.remoteFieldSettings.ApiClientSetup.As(ctx, rfc.remoteFieldSettings.apiClientSetup, basetypes.ObjectAsOptions{})...)
 		}
 	}
 	return diags
@@ -603,7 +732,100 @@ func (r *RegFieldResource) Read(ctx context.Context, req resource.ReadRequest, r
 		}
 		state.FieldDefinition = fd
 	}
+	if res.Data.RemoteSettings != nil {
+		remoteObj, diagRemote := remoteFieldSettingsToState(ctx, res.Data.RemoteSettings)
+		resp.Diagnostics.Append(diagRemote...)
+		if !resp.Diagnostics.HasError() {
+			state.RemoteFieldSettings = remoteObj
+		}
+	} else {
+		state.RemoteFieldSettings = types.ObjectNull(remoteFieldSettingsAttrTypes())
+	}
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+}
+
+// remoteFieldSettingsAttrTypes returns attribute types for remote_field_settings state object.
+func remoteFieldSettingsAttrTypes() map[string]attr.Type {
+	return map[string]attr.Type{
+		"call_once": types.BoolType,
+		"api_client_setup": types.ObjectType{
+			AttrTypes: map[string]attr.Type{
+				"communication_ep":  types.StringType,
+				"http_method":       types.StringType,
+				"api_access_type":   types.StringType,
+				"apikey_config":     types.ObjectType{AttrTypes: map[string]attr.Type{"apikey": types.StringType, "apikey_placeholder": types.StringType, "apikey_placement": types.StringType}},
+				"totp_config":       types.ObjectType{AttrTypes: map[string]attr.Type{"totpkey": types.StringType, "totp_placeholder": types.StringType, "totp_placement": types.StringType}},
+				"basic_auth_config": types.ObjectType{AttrTypes: map[string]attr.Type{"user": types.StringType, "password": types.StringType}},
+				"cidaas_oauth2_config": types.ObjectType{AttrTypes: map[string]attr.Type{"client_id": types.StringType, "req_scopes": types.StringType}},
+				"gen_oauth2_config": types.ObjectType{AttrTypes: map[string]attr.Type{"client_id": types.StringType, "client_secret": types.StringType, "wellknown_url": types.StringType, "req_scopes": types.StringType}},
+			},
+		},
+	}
+}
+
+// remoteFieldSettingsToState converts API RemoteFieldSettings to state object (sensitive values may be masked by API).
+func remoteFieldSettingsToState(ctx context.Context, rs *cidaas.RemoteFieldSettings) (types.Object, diag.Diagnostics) {
+	var diags diag.Diagnostics
+	attrTypes := remoteFieldSettingsAttrTypes()
+	callOnce := types.BoolNull()
+	if rs.CallOnce != nil {
+		callOnce = types.BoolValue(*rs.CallOnce)
+	}
+	apiSetupObj := types.ObjectNull(attrTypes["api_client_setup"].(types.ObjectType).AttrTypes)
+	if rs.APIClientSetup != nil {
+		acc := rs.APIClientSetup.ApiAccess
+		apiSetupAttrTypes := attrTypes["api_client_setup"].(types.ObjectType).AttrTypes
+		apiSetupAttrs := map[string]attr.Value{
+			"communication_ep":  types.StringValue(rs.APIClientSetup.CommunicationEP),
+			"http_method":       types.StringValue(rs.APIClientSetup.HttpMethod),
+			"api_access_type":   types.StringValue(acc.ApiAccessType),
+			"apikey_config":     objectNullOrValue(apiSetupAttrTypes["apikey_config"].(types.ObjectType).AttrTypes, acc.APIKeyDetails, func(d *cidaas.APIKeySetup) map[string]attr.Value {
+				return map[string]attr.Value{"apikey": types.StringValue(d.APIKey), "apikey_placeholder": types.StringValue(d.APIKeyPlaceholder), "apikey_placement": types.StringValue(d.APIKeyPlacement)}
+			}),
+			"totp_config": objectNullOrValue(apiSetupAttrTypes["totp_config"].(types.ObjectType).AttrTypes, acc.TotpDetails, func(d *cidaas.TotpSetup) map[string]attr.Value {
+				return map[string]attr.Value{"totpkey": types.StringValue(d.TotpKey), "totp_placeholder": types.StringValue(d.TotpPlaceholder), "totp_placement": types.StringValue(d.TotpPlacement)}
+			}),
+			"basic_auth_config": objectNullOrValue(apiSetupAttrTypes["basic_auth_config"].(types.ObjectType).AttrTypes, acc.BasicAuthDetails, func(d *cidaas.BasicAuthSetup) map[string]attr.Value {
+				return map[string]attr.Value{"user": types.StringValue(d.User), "password": types.StringValue(d.Password)}
+			}),
+			"cidaas_oauth2_config": types.ObjectNull(apiSetupAttrTypes["cidaas_oauth2_config"].(types.ObjectType).AttrTypes),
+			"gen_oauth2_config":   types.ObjectNull(apiSetupAttrTypes["gen_oauth2_config"].(types.ObjectType).AttrTypes),
+		}
+		if acc.OAuth2Details != nil {
+			if acc.OAuth2Details.WellknownURL != "" {
+				apiSetupAttrs["gen_oauth2_config"] = types.ObjectValueMust(apiSetupAttrTypes["gen_oauth2_config"].(types.ObjectType).AttrTypes, map[string]attr.Value{
+					"client_id": types.StringValue(acc.OAuth2Details.ClientID), "client_secret": types.StringValue(acc.OAuth2Details.ClientSecret),
+					"wellknown_url": types.StringValue(acc.OAuth2Details.WellknownURL), "req_scopes": types.StringValue(acc.OAuth2Details.ReqScopes),
+				})
+			} else {
+				apiSetupAttrs["cidaas_oauth2_config"] = types.ObjectValueMust(apiSetupAttrTypes["cidaas_oauth2_config"].(types.ObjectType).AttrTypes, map[string]attr.Value{
+					"client_id": types.StringValue(acc.OAuth2Details.ClientID), "req_scopes": types.StringValue(acc.OAuth2Details.ReqScopes),
+				})
+			}
+		}
+		var d diag.Diagnostics
+		apiSetupObj, d = types.ObjectValue(apiSetupAttrTypes, apiSetupAttrs)
+		diags.Append(d...)
+		if diags.HasError() {
+			return types.ObjectNull(attrTypes), diags
+		}
+	}
+	obj, d := types.ObjectValue(attrTypes, map[string]attr.Value{
+		"call_once":        callOnce,
+		"api_client_setup": apiSetupObj,
+	})
+	diags.Append(d...)
+	if diags.HasError() {
+		return types.ObjectNull(attrTypes), diags
+	}
+	return obj, diags
+}
+
+func objectNullOrValue[T any](attrTypes map[string]attr.Type, ptr *T, fn func(*T) map[string]attr.Value) types.Object {
+	if ptr == nil {
+		return types.ObjectNull(attrTypes)
+	}
+	return types.ObjectValueMust(attrTypes, fn(ptr))
 }
 
 func (r *RegFieldResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) { //nolint:dupl
@@ -785,7 +1007,90 @@ func prepareRegFieldModel(ctx context.Context, plan RegFieldConfig) (*cidaas.Reg
 			regConfig.FieldDefinition.InitialDate = &initialDate
 		}
 	}
+	if plan.remoteFieldSettings != nil && plan.remoteFieldSettings.apiClientSetup != nil {
+		remote, diagRemote := buildRemoteFieldSettings(ctx, plan.remoteFieldSettings)
+		if diagRemote.HasError() {
+			return nil, diagRemote
+		}
+		regConfig.RemoteSettings = remote
+	}
 	return &regConfig, nil
+}
+
+// buildRemoteFieldSettings converts Terraform remote_field_settings config to API type.
+func buildRemoteFieldSettings(ctx context.Context, cfg *RemoteFieldSettingsConfig) (*cidaas.RemoteFieldSettings, diag.Diagnostics) {
+	var diags diag.Diagnostics
+	setup := cfg.apiClientSetup
+	apiSetup := &cidaas.ApiClientSetup{
+		CommunicationEP: setup.CommunicationEP.ValueString(),
+		HttpMethod:      setup.HTTPMethod.ValueString(),
+		ApiAccess: cidaas.APIAccessSetup{
+			ApiAccessType: setup.APIAccessType.ValueString(),
+		},
+	}
+	// Map the appropriate auth config block to ApiAccess.
+	if !setup.ApikeyConfig.IsNull() && !setup.ApikeyConfig.IsUnknown() {
+		var ac ApikeyConfig
+		diags.Append(setup.ApikeyConfig.As(ctx, &ac, basetypes.ObjectAsOptions{})...)
+		if !diags.HasError() {
+			apiSetup.ApiAccess.APIKeyDetails = &cidaas.APIKeySetup{
+				APIKey:            ac.Apikey.ValueString(),
+				APIKeyPlaceholder: ac.ApikeyPlaceholder.ValueString(),
+				APIKeyPlacement:   ac.ApikeyPlacement.ValueString(),
+			}
+		}
+	}
+	if !setup.TotpConfig.IsNull() && !setup.TotpConfig.IsUnknown() {
+		var tc TotpConfig
+		diags.Append(setup.TotpConfig.As(ctx, &tc, basetypes.ObjectAsOptions{})...)
+		if !diags.HasError() {
+			apiSetup.ApiAccess.TotpDetails = &cidaas.TotpSetup{
+				TotpKey:         tc.TotpKey.ValueString(),
+				TotpPlaceholder: tc.TotpPlaceholder.ValueString(),
+				TotpPlacement:   tc.TotpPlacement.ValueString(),
+			}
+		}
+	}
+	if !setup.BasicAuthConfig.IsNull() && !setup.BasicAuthConfig.IsUnknown() {
+		var bc BasicAuthConfig
+		diags.Append(setup.BasicAuthConfig.As(ctx, &bc, basetypes.ObjectAsOptions{})...)
+		if !diags.HasError() {
+			apiSetup.ApiAccess.BasicAuthDetails = &cidaas.BasicAuthSetup{
+				User:     bc.User.ValueString(),
+				Password: bc.Password.ValueString(),
+			}
+		}
+	}
+	if !setup.CidaasOAuth2Config.IsNull() && !setup.CidaasOAuth2Config.IsUnknown() {
+		var oc CidaasOAuth2Config
+		diags.Append(setup.CidaasOAuth2Config.As(ctx, &oc, basetypes.ObjectAsOptions{})...)
+		if !diags.HasError() {
+			apiSetup.ApiAccess.OAuth2Details = &cidaas.OAuth2Setup{
+				ClientID:  oc.ClientID.ValueString(),
+				ReqScopes: oc.ReqScopes.ValueString(),
+			}
+		}
+	}
+	if !setup.GenOAuth2Config.IsNull() && !setup.GenOAuth2Config.IsUnknown() {
+		var gc GenOAuth2Config
+		diags.Append(setup.GenOAuth2Config.As(ctx, &gc, basetypes.ObjectAsOptions{})...)
+		if !diags.HasError() {
+			apiSetup.ApiAccess.OAuth2Details = &cidaas.OAuth2Setup{
+				ClientID:     gc.ClientID.ValueString(),
+				ClientSecret: gc.ClientSecret.ValueString(),
+				WellknownURL: gc.WellknownURL.ValueString(),
+				ReqScopes:    gc.ReqScopes.ValueString(),
+			}
+		}
+	}
+	out := &cidaas.RemoteFieldSettings{
+		APIClientSetup: apiSetup,
+	}
+	if !cfg.CallOnce.IsNull() && !cfg.CallOnce.IsUnknown() {
+		callOnce := cfg.CallOnce.ValueBool()
+		out.CallOnce = &callOnce
+	}
+	return out, diags
 }
 
 // custom validations
