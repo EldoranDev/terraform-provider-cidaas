@@ -1434,7 +1434,7 @@ terraform import cidaas_password_policy.resource_name id
 
 # cidaas_registration_field (Resource)
 
-The `cidaas_registration_field` in the provider allows management of registration fields in the Cidaas system. This resource enables you to configure and customize the fields displayed during user registration.
+The `cidaas_registration_page_field` in the provider allows management of registration fields in the cidaas system. This resource enables you to configure and customize the fields displayed during user registration.
 
  Ensure that the below scopes are assigned to the client with the specified `client_id`:
 

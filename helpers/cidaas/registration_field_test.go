@@ -68,7 +68,6 @@ func TestRegField_Upsert_Success(t *testing.T) {
 		},
 		LocaleTexts: []*LocaleText{
 			{
-				Language:          "en",
 				Locale:            "en-US",
 				Name:              "Email Address",
 				MinLengthErrorMsg: "Email must be at least 3 characters",
@@ -312,7 +311,6 @@ func TestRegField_Upsert_WithMultipleLocaleTexts(t *testing.T) {
 		Enabled:   true,
 		LocaleTexts: []*LocaleText{
 			{
-				Language:          "en",
 				Locale:            "en-US",
 				Name:              "Full Name",
 				RequiredMsg:       "Full name is required",
@@ -328,7 +326,6 @@ func TestRegField_Upsert_WithMultipleLocaleTexts(t *testing.T) {
 				},
 			},
 			{
-				Language:          "de",
 				Locale:            "de-DE",
 				Name:              "Vollständiger Name",
 				RequiredMsg:       "Vollständiger Name ist erforderlich",
@@ -353,10 +350,6 @@ func TestRegField_Upsert_WithMultipleLocaleTexts(t *testing.T) {
 
 		// Verify English locale
 		enLocale := receivedRegField.LocaleTexts[0]
-		if enLocale.Language != "en" {
-			t.Errorf("Expected first locale language 'en', got %s", enLocale.Language)
-		}
-
 		if enLocale.Name != "Full Name" {
 			t.Errorf("Expected first locale name 'Full Name', got %s", enLocale.Name)
 		}
@@ -367,10 +360,6 @@ func TestRegField_Upsert_WithMultipleLocaleTexts(t *testing.T) {
 
 		// Verify German locale
 		deLocale := receivedRegField.LocaleTexts[1]
-		if deLocale.Language != "de" {
-			t.Errorf("Expected second locale language 'de', got %s", deLocale.Language)
-		}
-
 		if deLocale.Name != "Vollständiger Name" {
 			t.Errorf("Expected second locale name 'Vollständiger Name', got %s", deLocale.Name)
 		}
@@ -398,14 +387,12 @@ func TestRegField_Upsert_WithMultipleLocaleTexts(t *testing.T) {
 		t.Errorf("Expected 2 locale texts in response, got %d", len(result.Data.LocaleTexts))
 	}
 
-	// Verify English locale in response
-	if result.Data.LocaleTexts[0].Language != "en" {
-		t.Errorf("Expected first locale language 'en' in response, got %s", result.Data.LocaleTexts[0].Language)
+	// Verify locale names in response
+	if result.Data.LocaleTexts[0].Name != "Full Name" {
+		t.Errorf("Expected first locale name 'Full Name' in response, got %s", result.Data.LocaleTexts[0].Name)
 	}
-
-	// Verify German locale in response
-	if result.Data.LocaleTexts[1].Language != "de" {
-		t.Errorf("Expected second locale language 'de' in response, got %s", result.Data.LocaleTexts[1].Language)
+	if result.Data.LocaleTexts[1].Name != "Vollständiger Name" {
+		t.Errorf("Expected second locale name 'Vollständiger Name' in response, got %s", result.Data.LocaleTexts[1].Name)
 	}
 }
 
@@ -733,13 +720,13 @@ func TestRegField_GetAll_Success(t *testing.T) {
 	}
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Verify request method and endpoint
-		if r.Method != http.MethodGet {
-			t.Errorf("Expected GET method, got %s", r.Method)
+		// Verify request method and endpoint (fieldsetup-srv/graph/fields expects POST)
+		if r.Method != http.MethodPost {
+			t.Errorf("Expected POST method, got %s", r.Method)
 		}
 
-		if !strings.Contains(r.URL.Path, "registration-setup-srv/fields/list") {
-			t.Errorf("Expected registration-setup-srv/fields/list endpoint, got %s", r.URL.Path)
+		if !strings.Contains(r.URL.Path, "fieldsetup-srv/graph/fields") {
+			t.Errorf("Expected fieldsetup-srv/graph/fields endpoint, got %s", r.URL.Path)
 		}
 
 		response := AllRegFieldResponse{
