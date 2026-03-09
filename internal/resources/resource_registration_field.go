@@ -868,17 +868,7 @@ func (r *RegFieldResource) Update(ctx context.Context, req resource.UpdateReques
 		"field_id": state.ID.ValueString(),
 	})
 
-	// Computed attributes (e.g. base_data_type) must be known after apply. Prefer API as source of truth.
-	// GROUPING is the only data_type with empty base_data_type; all others have a value from the API.
-	getRes, getErr := r.cidaasClient.RegFields.Get(ctx, plan.FieldKey.ValueString())
-	if getErr == nil {
-		if getRes.Data.BaseDataType == "" {
-			plan.BaseDataType = types.StringValue("")
-		} else {
-			plan.BaseDataType = util.StringValueOrNull(&getRes.Data.BaseDataType)
-		}
-		plan.Order = util.Int64ValueOrNull(&getRes.Data.Order)
-	}
+	// Computed base_data_type must be known after apply (e.g. GROUPING has empty). Fallback to state or "".
 	if plan.BaseDataType.IsUnknown() {
 		if !state.BaseDataType.IsUnknown() {
 			plan.BaseDataType = state.BaseDataType
