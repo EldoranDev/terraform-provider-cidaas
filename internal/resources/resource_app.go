@@ -677,10 +677,12 @@ func updateAppState(state *AppConfig, resp cidaas.AppResponse, isImport bool) {
 		var allowedGroupObjectValues []attr.Value
 		for _, group := range data.AllowGuestLoginGroups {
 			groupID := group.GroupID
+			groupType := group.GroupType
 			objValue := types.ObjectValueMust(
 				allowedGroupsObjectType.AttrTypes,
 				map[string]attr.Value{
 					"group_id":      util.StringValueOrNull(&groupID),
+					"group_type":    util.StringValueOrNull(&groupType),
 					"roles":         util.SetValueOrNull(group.Roles),
 					"default_roles": util.SetValueOrNull(group.DefaultRoles),
 				})
@@ -726,7 +728,11 @@ func updateAppState(state *AppConfig, resp cidaas.AppResponse, isImport bool) {
 
 	if (!state.Mfa.IsNull() || isImport) && data.Mfa != nil {
 		setting := util.StringValueOrNull(&data.Mfa.Setting)
-		timeInterval := util.Int64ValueOrNull(data.Mfa.TimeIntervalInSeconds)
+		// Don't persist 0 or empty: treat as null to avoid drift when API returns no value
+		timeInterval := types.Int64Null()
+		if data.Mfa.TimeIntervalInSeconds != nil && *data.Mfa.TimeIntervalInSeconds != 0 {
+			timeInterval = types.Int64Value(*data.Mfa.TimeIntervalInSeconds)
+		}
 		allowedMethods := util.SetValueOrNull(data.Mfa.AllowedMethods)
 
 		mfa := types.ObjectValueMust(

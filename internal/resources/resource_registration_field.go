@@ -606,7 +606,12 @@ func (r *RegFieldResource) Read(ctx context.Context, req resource.ReadRequest, r
 		return
 	}
 	state.ID = util.StringValueOrNull(&res.Data.ID)
-	state.BaseDataType = util.StringValueOrNull(&res.Data.BaseDataType)
+	// GROUPING is the only data_type with empty base_data_type from the API; others always have a value.
+	if res.Data.BaseDataType == "" {
+		state.BaseDataType = types.StringValue("")
+	} else {
+		state.BaseDataType = util.StringValueOrNull(&res.Data.BaseDataType)
+	}
 	state.ParentGroupID = util.StringValueOrNull(&res.Data.ParentGroupID)
 	state.FieldType = util.StringValueOrNull(&res.Data.FieldType)
 	state.DataType = util.StringValueOrNull(&res.Data.DataType)
@@ -862,6 +867,28 @@ func (r *RegFieldResource) Update(ctx context.Context, req resource.UpdateReques
 	tflog.Info(ctx, "successfully updated registration field via API", util.H{
 		"field_id": state.ID.ValueString(),
 	})
+
+	// Computed attributes (e.g. base_data_type) must be known after apply. Prefer API as source of truth.
+	// GROUPING is the only data_type with empty base_data_type; all others have a value from the API.
+	getRes, getErr := r.cidaasClient.RegFields.Get(ctx, plan.FieldKey.ValueString())
+	if getErr == nil {
+		if getRes.Data.BaseDataType == "" {
+			plan.BaseDataType = types.StringValue("")
+		} else {
+			plan.BaseDataType = util.StringValueOrNull(&getRes.Data.BaseDataType)
+		}
+		plan.Order = util.Int64ValueOrNull(&getRes.Data.Order)
+	}
+	if plan.BaseDataType.IsUnknown() {
+		if !state.BaseDataType.IsUnknown() {
+			plan.BaseDataType = state.BaseDataType
+		} else {
+			plan.BaseDataType = types.StringValue("")
+		}
+	}
+	if plan.BaseDataType.IsUnknown() {
+		plan.BaseDataType = types.StringValue("")
+	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
