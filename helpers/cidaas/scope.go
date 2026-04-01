@@ -68,7 +68,7 @@ func (c *Scope) Upsert(ctx context.Context, sc ScopeModel) (*ScopeResponse, erro
 
 func (c *Scope) Get(ctx context.Context, scopeKey string) (*ScopeResponse, error) {
 	var response ScopeResponse
-	url := fmt.Sprintf("%s/%s?scopekey=%s", c.BaseURL, "scopes-srv/scope", strings.ToLower(scopeKey))
+	url := fmt.Sprintf("%s/%s?scopekey=%s", c.BaseURL, "scopes-srv/scope", scopeKey)
 	client, err := util.NewHTTPClient(url, http.MethodGet, c.AccessToken)
 	if err != nil {
 		return nil, err
@@ -86,7 +86,7 @@ func (c *Scope) Get(ctx context.Context, scopeKey string) (*ScopeResponse, error
 }
 
 func (c *Scope) Delete(ctx context.Context, scopeKey string) error {
-	url := fmt.Sprintf("%s/%s/%s", c.BaseURL, "scopes-srv/scope", strings.ToLower(scopeKey))
+	url := fmt.Sprintf("%s/%s/%s", c.BaseURL, "scopes-srv/scope", scopeKey)
 	client, err := util.NewHTTPClient(url, http.MethodDelete, c.AccessToken)
 	if err != nil {
 		return err
