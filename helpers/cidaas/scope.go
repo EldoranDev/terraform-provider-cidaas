@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"strings"
 
 	"github.com/Cidaas/terraform-provider-cidaas/helpers/util"
 )
