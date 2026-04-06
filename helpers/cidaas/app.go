@@ -230,6 +230,7 @@ type OptionalConfig struct {
 type GroupRoleRestriction struct {
 	MatchCondition string             `json:"matchCondition,omitempty"`
 	Filters        []GroupRoleFilters `json:"filters,omitempty"`
+	ResponseHints  []string           `json:"hints,omitempty"`
 }
 
 type GroupRoleFilters struct {

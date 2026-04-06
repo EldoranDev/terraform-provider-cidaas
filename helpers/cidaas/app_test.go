@@ -245,6 +245,7 @@ func TestApp_Create_WithComplexNestedStructures(t *testing.T) {
 		},
 		GroupRoleRestriction: &GroupRoleRestriction{
 			MatchCondition: "ANY",
+			ResponseHints:  []string{"groupIds", "rolesOfGroup"},
 			Filters: []GroupRoleFilters{
 				{
 					GroupID: "group-1",
