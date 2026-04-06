@@ -133,6 +133,7 @@ variable "common_configs" {
           roles           = list(string)
         })
       })))
+      hints = optional(set(string))
     }))
     mfa = optional(object({
       setting                  = optional(string)
