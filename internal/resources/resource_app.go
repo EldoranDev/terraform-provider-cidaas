@@ -813,7 +813,8 @@ func updateAppState(state *AppConfig, resp cidaas.AppResponse, isImport bool) {
 		state.SuggestVerificationMethods = obj
 	}
 
-	if (!state.GroupRoleRestriction.IsNull() || isImport) && data.GroupRoleRestriction != nil && len(data.GroupRoleRestriction.Filters) > 0 {
+	if (!state.GroupRoleRestriction.IsNull() || isImport) && data.GroupRoleRestriction != nil &&
+		(len(data.GroupRoleRestriction.Filters) > 0 || len(data.GroupRoleRestriction.ResponseHints) > 0) {
 		roleFilterType := map[string]attr.Type{
 			"match_condition": types.StringType,
 			"roles":           types.SetType{ElemType: types.StringType},
@@ -853,14 +854,18 @@ func updateAppState(state *AppConfig, resp cidaas.AppResponse, isImport bool) {
 		}
 		filters = types.ListValueMust(filterObjectType, filterObjectValues)
 
+		hints := util.SetValueOrNull(data.GroupRoleRestriction.ResponseHints)
+
 		obj := types.ObjectValueMust(
 			map[string]attr.Type{
 				"match_condition": types.StringType,
 				"filters":         types.ListType{ElemType: types.ObjectType{AttrTypes: filterType}},
+				"hints":           types.SetType{ElemType: types.StringType},
 			},
 			map[string]attr.Value{
 				"match_condition": parentMatchCondition,
 				"filters":         filters,
+				"hints":           hints,
 			},
 		)
 		state.GroupRoleRestriction = obj
