@@ -225,6 +225,7 @@ type OptionalConfig struct {
 type GroupRoleRestriction struct {
 	MatchCondition types.String `tfsdk:"match_condition"`
 	Filters        types.List   `tfsdk:"filters"`
+	Hints          types.Set    `tfsdk:"hints"`
 }
 type GroupRoleFilters struct {
 	GroupID    types.String `tfsdk:"group_id"`
@@ -729,6 +730,9 @@ func prepareAppModel(ctx context.Context, plan AppConfig) (*cidaas.AppModel, dia
 			}
 		}
 		grr.MatchCondition = plan.groupRoleRestriction.MatchCondition.ValueString()
+		if !plan.groupRoleRestriction.Hints.IsNull() && !plan.groupRoleRestriction.Hints.IsUnknown() {
+			diags.Append(assignSetValues(ctx, plan.groupRoleRestriction.Hints, &grr.ResponseHints)...)
+		}
 		app.GroupRoleRestriction = grr
 	}
 	return &app, diags

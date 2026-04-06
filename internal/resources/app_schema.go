@@ -3,6 +3,7 @@ package resources
 import (
 	"regexp"
 
+	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -672,6 +673,16 @@ var resourceAppSchema = schema.Schema{
 								},
 							},
 						},
+					},
+				},
+				"hints": schema.SetAttribute{
+					Optional:            true,
+					MarkdownDescription: "Optional response hints for group verification: groupIds, rolesOfGroup, or allowedGroups.",
+					ElementType:         types.StringType,
+					Validators: []validator.Set{
+						setvalidator.ValueStringsAre(
+							stringvalidator.OneOf("groupIds", "rolesOfGroup", "allowedGroups"),
+						),
 					},
 				},
 			},
