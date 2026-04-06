@@ -1,5 +1,25 @@
 ## Changelog
 
+### 3.5.7
+
+#### Enhancements
+
+- **Documentation:** Added the [Notification service (notification-srv)](docs/guides/notification_srv.md) guide (source: `templates/guides/notification_srv.md.tmpl`) covering legacy templates-srv vs notification-srv, `notifications_context_path`, scopes, use cases, API casing, and known limitations. Linked from the README notification section.
+- **Examples:** Added examples for `cidaas_notification_template`, `cidaas_notifications_template_group`, `data.cidaas_notification_templates`, and `data.cidaas_notification_template_groups`; refreshed `cidaas_notification_template_type` examples to use lowercase `communication_methods` / `msg_formats` aligned with notification-srv JSON.
+- **Registry docs:** Regenerated provider documentation (`go generate ./...`) including notification-srv resources and datasources; provider index template example provider version set to **3.5.7**.
+
+#### Bug Fixes
+
+- **Registration field:** Computed `base_data_type` is no longer unknown after apply for GROUPING fields when the API returns no base type; the provider sets empty string with fallbacks so state is always known.
+- **App – `allow_guest_login_groups`:** `group_type` is now populated in state from the API.
+- **App – MFA:** `time_interval_in_seconds` is stored as null when the API returns 0 or omits it, reducing plan drift.
+- **`cidaas_notification_template_type`:** Sends a default **`owner`** of `client` on create/update when unset; **`communication_methods`** accept case-insensitive values matching notification-srv (`email`, `sms`, `ivr`, `push`) with **`ModifyPlan`** and state normalization to lowercase to avoid inconsistent plan/apply and API validation errors.
+
+#### CI
+
+- Added `.ci/lint/configs/golang/.golangci-standard.yml` so the shared GitLab lint template resolves the config.
+- Fixed the lint:diff job in the pipeline.
+
 ### 3.5.6
 
 #### Enhancements

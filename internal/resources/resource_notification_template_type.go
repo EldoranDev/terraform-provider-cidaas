@@ -22,8 +22,10 @@ import (
 )
 
 var (
-	allowedCommMethods = []string{"EMAIL", "SMS", "IVR", "PUSH"}
-	allowedCategories  = []string{"cidaas", "custom"}
+	// Matches notification-srv / API JSON (lowercase comm methods).
+	commMethodValueRegexp = regexp.MustCompile(`(?i)^(email|sms|ivr|push)$`)
+	allowedCategories     = []string{"cidaas", "custom"}
+	templateTypeOwners    = []string{"client", "admin", "core", "system"}
 )
 
 type TemplateTypeResource struct {
@@ -149,13 +151,17 @@ var templateTypeSchema = schema.Schema{
 			MarkdownDescription: "Allowed verification types (e.g., `EMAIL`, `SMS`). Read-only for system template types.",
 		},
 		"communication_methods": schema.SetAttribute{
-			ElementType:         types.StringType,
-			Required:            true,
-			MarkdownDescription: "Communication methods supported by this template type. Allowed values: `EMAIL`, `SMS`, `IVR`, `PUSH`. At least one is required.",
+			ElementType: types.StringType,
+			Required:    true,
+			MarkdownDescription: "Communication methods supported by this template type. Use the same lowercase values as the API: `email`, `sms`, `ivr`, `push` " +
+				"(uppercase is accepted but normalized to lowercase). At least one is required.",
 			Validators: []validator.Set{
 				setvalidator.SizeAtLeast(1),
 				setvalidator.ValueStringsAre(
-					stringvalidator.OneOf(allowedCommMethods...),
+					stringvalidator.RegexMatches(
+						commMethodValueRegexp,
+						"must be email, sms, ivr, or push (case insensitive; stored as lowercase to match the API)",
+					),
 				),
 			},
 		},
@@ -167,13 +173,16 @@ var templateTypeSchema = schema.Schema{
 		"msg_formats": schema.SetAttribute{
 			ElementType:         types.StringType,
 			Optional:            true,
-			MarkdownDescription: "Message format restrictions. Read-only for system template types.",
+			MarkdownDescription: "Message format restrictions (`html`, `text`, `media`). Read-only for system template types.",
 		},
 		"owner": schema.StringAttribute{
-			Computed:            true,
-			MarkdownDescription: "The owner of the template type (e.g., `CLIENT`, `SYSTEM`).",
-			PlanModifiers: []planmodifier.String{
-				stringplanmodifier.UseStateForUnknown(),
+			Optional: true,
+			Computed: true,
+			Default:  stringdefault.StaticString("client"),
+			MarkdownDescription: "Object owner sent to notification-srv: `client`, `admin`, `core`, or `system` (lowercase JSON). " +
+				"Defaults to `client` for custom template types.",
+			Validators: []validator.String{
+				stringvalidator.OneOf(templateTypeOwners...),
 			},
 		},
 		"created_time": schema.StringAttribute{
@@ -188,6 +197,37 @@ var templateTypeSchema = schema.Schema{
 			MarkdownDescription: "The timestamp when the template type was last updated.",
 		},
 	},
+}
+
+var _ resource.ResourceWithModifyPlan = (*TemplateTypeResource)(nil)
+
+// ModifyPlan normalizes communication_methods to lowercase so planned values match API responses and state.
+func (r *TemplateTypeResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+	var plan TemplateTypeConfig
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	if !plan.CommunicationMethods.IsNull() && !plan.CommunicationMethods.IsUnknown() {
+		var elems []string
+		resp.Diagnostics.Append(plan.CommunicationMethods.ElementsAs(ctx, &elems, false)...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		normalized := make([]string, len(elems))
+		for i, e := range elems {
+			normalized[i] = strings.ToLower(strings.TrimSpace(e))
+		}
+		newSet, diags := types.SetValueFrom(ctx, types.StringType, normalized)
+		resp.Diagnostics.Append(diags...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		plan.CommunicationMethods = newSet
+	}
+
+	resp.Diagnostics.Append(resp.Plan.Set(ctx, &plan)...)
 }
 
 func (r *TemplateTypeResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
@@ -382,13 +422,28 @@ func prepareTemplateTypeModel(ctx context.Context, config TemplateTypeConfig) *c
 		config.VerificationTypes.ElementsAs(ctx, &model.VerificationTypes, false)
 	}
 	if !config.CommunicationMethods.IsNull() {
-		config.CommunicationMethods.ElementsAs(ctx, &model.CommunicationMethods, false)
+		var comm []string
+		config.CommunicationMethods.ElementsAs(ctx, &comm, false)
+		for i := range comm {
+			comm[i] = strings.ToLower(strings.TrimSpace(comm[i]))
+		}
+		model.CommunicationMethods = comm
 	}
 	if !config.TemplateGroupIDs.IsNull() {
 		config.TemplateGroupIDs.ElementsAs(ctx, &model.TemplateGroupIDs, false)
 	}
 	if !config.MsgFormats.IsNull() {
-		config.MsgFormats.ElementsAs(ctx, &model.MsgFormats, false)
+		var mf []string
+		config.MsgFormats.ElementsAs(ctx, &mf, false)
+		for i := range mf {
+			mf[i] = strings.ToLower(strings.TrimSpace(mf[i]))
+		}
+		model.MsgFormats = mf
+	}
+	if !config.Owner.IsNull() && !config.Owner.IsUnknown() {
+		model.Owner = strings.ToLower(strings.TrimSpace(config.Owner.ValueString()))
+	} else {
+		model.Owner = "client"
 	}
 
 	return model
@@ -400,7 +455,11 @@ func updateStateFromModel(ctx context.Context, state *TemplateTypeConfig, model 
 	state.Category = util.StringValueOrNull(&model.Category)
 	state.Description = util.StringValueOrNull(&model.Description)
 	state.Deactivatable = types.BoolValue(model.Deactivatable)
-	state.Owner = util.StringValueOrNull(&model.Owner)
+	if model.Owner != "" {
+		state.Owner = types.StringValue(strings.ToLower(model.Owner))
+	} else {
+		state.Owner = types.StringNull()
+	}
 	state.CreatedTime = util.StringValueOrNull(&model.CreatedTime)
 	state.UpdatedTime = util.StringValueOrNull(&model.UpdatedTime)
 
@@ -444,7 +503,11 @@ func updateStateFromModel(ctx context.Context, state *TemplateTypeConfig, model 
 		}
 	}
 	if model.CommunicationMethods != nil {
-		commMethods, diags := types.SetValueFrom(ctx, types.StringType, model.CommunicationMethods)
+		commLower := make([]string, len(model.CommunicationMethods))
+		for i, m := range model.CommunicationMethods {
+			commLower[i] = strings.ToLower(strings.TrimSpace(m))
+		}
+		commMethods, diags := types.SetValueFrom(ctx, types.StringType, commLower)
 		if !diags.HasError() {
 			state.CommunicationMethods = commMethods
 		}
@@ -462,4 +525,3 @@ func updateStateFromModel(ctx context.Context, state *TemplateTypeConfig, model 
 		}
 	}
 }
-

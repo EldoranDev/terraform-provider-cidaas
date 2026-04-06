@@ -47,7 +47,7 @@ Begin by specifying the cidaas provider in your `terraform` block in your Terraf
 terraform {
     required_providers {
       cidaas = {
-        version = "3.0.0"
+        version = "3.5.7"
         source  = "Cidaas/cidaas"
       }
     }
@@ -90,6 +90,22 @@ provider "cidaas" {
 
 By following these steps, you integrate the cidaas Terraform provider enabling you to manage your cidaas resources with Terraform.
 
+### Notification templates (notification-srv)
+
+Configure the provider with `base_url` and optional `notifications_context_path` (default `notifications-srv`). **New** template workflows should use **notification-srv** REST under `/{ctx}/…`, not legacy **templates-srv**.
+
+| Scenario | Terraform building blocks |
+| --- | --- |
+| Update templates in the default template group | `data.cidaas_notification_templates` (POST `graph/templates/` with a graph filter) to discover rows; `cidaas_notification_template` for each `PUT /templates/:id` |
+| Create a new template group and configure templates | `cidaas_notifications_template_group` (`POST/PUT templategroups`); `data.cidaas_notification_service_setups` to resolve `serviceSetupId` per channel; `cidaas_notification_template` per row (`POST /templates/`) |
+| Add another locale and translated content | Copy options on `cidaas_notifications_template_group` and/or additional `cidaas_notification_template` instances per locale |
+| Point the group at another comm / service setup | `data.cidaas_notification_service_setups` + `cidaas_notifications_template_group` `comm_setting_*` |
+| Developer template type and template body | `cidaas_notification_template_type` (`POST /templatetypes/`) + `cidaas_notification_template` with `group_id = "developer"` |
+
+**Legacy:** `cidaas_template` and `cidaas_template_group` call **templates-srv**; they remain for existing configurations but are deprecated for greenfield IaC in favour of the resources above.
+
+For limitations, authentication, and step-by-step workflows, see the [Notification service (notification-srv) guide](docs/guides/notification_srv.md).
+
 ## Supported Resources
 
 The Terraform provider for cidaas supports a variety of resources that enables you to manage and configure different aspects of your cidaas environment. These resources are designed to integrate with Terraform workflows, allowing you to define, provision and manage your cidaas resources as code.
@@ -109,8 +125,11 @@ Explore the following resources to understand their attributes, functionalities 
 * [cidaas_scope_group](#cidaas_scope_group-resource)
 * [cidaas_scope](#cidaas_scope-resource)
 * [cidaas_social_provider](#cidaas_social_provider-resource)
-* [cidaas_template_group](#cidaas_template_group-resource)
-* [cidaas_template](#cidaas_template-resource)
+* [cidaas_template_group](#cidaas_template_group-resource) (legacy templates-srv)
+* [cidaas_template](#cidaas_template-resource) (legacy templates-srv)
+* [cidaas_notifications_template_group](#cidaas_notifications_template_group-resource) (notification-srv)
+* [cidaas_notification_template](#cidaas_notification_template-resource) (notification-srv)
+* [cidaas_notification_template_type](#cidaas_notification_template_type-resource) (notification-srv)
 * [cidaas_user_groups](#cidaas_user_groups-resource)
 * [cidaas_webhook](#cidaas_webhook-resource)
 
@@ -129,6 +148,9 @@ Here is the list of the datasources the provider supports:
 * [cidaas_scope](#cidaas_scope-data-source)
 * [cidaas_social_provider](#cidaas_social_provider-data-source)
 * [cidaas_system_template_option](#cidaas_system_template_option-data-source)
+* [cidaas_notification_service_setups](#cidaas_notification_service_setups-data-source)
+* [cidaas_notification_templates](#cidaas_notification_templates-data-source)
+* [cidaas_notification_template_groups](#cidaas_notification_template_groups-data-source)
 
 # cidaas_app (Resource)
 
@@ -2114,6 +2136,36 @@ Import is supported using the following syntax:
 
 terraform import cidaas_template.sample TERRAFORM_TEMPLATE:SMS:de-de
 ```
+
+# cidaas_notifications_template_group (Resource)
+
+Manages a **template group** via notification-srv `POST/GET/PUT/DELETE …/templategroups/`. Requires provider `notifications_context_path` (default `notifications-srv`). Use `data.cidaas_notification_service_setups` to resolve `service_setup_id` values for `comm_setting_*` blocks.
+
+See [Notification templates (notification-srv)](#notification-templates-notification-srv). Full schema is generated for the registry; run `make docs` if your fork uses `tfplugindocs`.
+
+# cidaas_notification_template (Resource)
+
+Manages a **single template document** via notification-srv `GET/POST/PUT/DELETE …/templates/…`. Import with the template document id:
+
+```shell
+terraform import cidaas_notification_template.example "default:WELCOME_USER:email:en-us"
+```
+
+# cidaas_notification_template_type (Resource)
+
+Manages **template types** via notification-srv `…/templatetypes/…` (same `{ctx}` as other notification-srv resources). Scopes: `cidaas:templates_*` as documented on the resource.
+
+# cidaas_notification_service_setups (Data source)
+
+`data.cidaas_notification_service_setups` calls `GET …/servicesetups/` and exposes `setups` with `id`, `name`, `service_id`, etc., for wiring `comm_setting_*` blocks.
+
+# cidaas_notification_templates (Data source)
+
+`data.cidaas_notification_templates` requires `graph_filter` (JSON string) and returns `templates` from `POST …/graph/templates/`.
+
+# cidaas_notification_template_groups (Data source)
+
+`data.cidaas_notification_template_groups` requires `graph_filter` (JSON string) and returns `groups` from `POST …/graph/templategroups/`.
 
 # cidaas_user_groups (Resource)
 

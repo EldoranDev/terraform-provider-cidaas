@@ -11,24 +11,27 @@ import (
 )
 
 type Client struct {
-	Roles          *Role
-	CustomProvider *CustomProvider
-	SocialProvider *SocialProvider
-	Scopes         *Scope
-	ScopeGroup     *ScopeGroup
-	ConsentGroup   *ConsentGroup
-	GroupType      *GroupType
-	UserGroup      *UserGroup
-	HostedPages    *HostedPage
-	Webhook        *Webhook
-	Apps           *App
-	RegFields      *RegField
-	TemplateGroup  *TemplateGroup
-	Templates      *Template
-	TemplateType   *TemplateTypeServiceImpl
-	PasswordPolicy *PasswordPolicy
-	Consent        *Consent
-	ConsentVersion *ConsentVersion
+	Roles                         *Role
+	NotificationsSrvTemplateGroup *NotificationsSrvTemplateGroup
+	NotificationsSrvTemplate      *NotificationsSrvTemplate
+	NotificationsSrvServiceSetup  *NotificationsSrvServiceSetup
+	CustomProvider                *CustomProvider
+	SocialProvider                *SocialProvider
+	Scopes                        *Scope
+	ScopeGroup                    *ScopeGroup
+	ConsentGroup                  *ConsentGroup
+	GroupType                     *GroupType
+	UserGroup                     *UserGroup
+	HostedPages                   *HostedPage
+	Webhook                       *Webhook
+	Apps                          *App
+	RegFields                     *RegField
+	TemplateGroup                 *TemplateGroup
+	Templates                     *Template
+	TemplateType                  *TemplateTypeServiceImpl
+	PasswordPolicy                *PasswordPolicy
+	Consent                       *Consent
+	ConsentVersion                *ConsentVersion
 }
 
 type ClientConfig struct {
@@ -36,6 +39,9 @@ type ClientConfig struct {
 	ClientSecret string
 	BaseURL      string
 	AccessToken  string
+	// NotificationsContextPath is the URL segment for notification-srv APIs (default: notifications-srv).
+	// Used by notification-srv template groups, templates, template types, and service setups; legacy template resources ignore this.
+	NotificationsContextPath string
 }
 
 func (c *ClientConfig) makeRequest(ctx context.Context, method, endpoint string, body interface{}) (*http.Response, error) {
@@ -83,24 +89,27 @@ func NewClient(ctx context.Context, config ClientConfig) (*Client, error) {
 	}
 	config.AccessToken = response.AccessToken
 	client := &Client{
-		Roles:          NewRole(config),
-		CustomProvider: NewCustomProvider(config),
-		Scopes:         NewScope(config),
-		ScopeGroup:     NewScopeGroup(config),
-		GroupType:      NewGroupType(config),
-		UserGroup:      NewUserGroup(config),
-		HostedPages:    NewHostedPage(config),
-		Webhook:        NewWebhook(config),
-		Apps:           NewApp(config),
-		RegFields:      NewRegField(config),
-		TemplateGroup:  NewTemplateGroup(config),
-		Templates:      NewTemplate(config),
-		TemplateType:   NewTemplateType(config),
-		SocialProvider: NewSocialProvider(config),
-		PasswordPolicy: NewPasswordPolicy(config),
-		ConsentGroup:   NewConsentGroup(config),
-		Consent:        NewConsent(config),
-		ConsentVersion: NewConsentVersion(config),
+		Roles:                         NewRole(config),
+		NotificationsSrvTemplateGroup: NewNotificationsSrvTemplateGroup(config),
+		NotificationsSrvTemplate:      NewNotificationsSrvTemplate(config),
+		NotificationsSrvServiceSetup:  NewNotificationsSrvServiceSetup(config),
+		CustomProvider:                NewCustomProvider(config),
+		Scopes:                        NewScope(config),
+		ScopeGroup:                    NewScopeGroup(config),
+		GroupType:                     NewGroupType(config),
+		UserGroup:                     NewUserGroup(config),
+		HostedPages:                   NewHostedPage(config),
+		Webhook:                       NewWebhook(config),
+		Apps:                          NewApp(config),
+		RegFields:                     NewRegField(config),
+		TemplateGroup:                 NewTemplateGroup(config),
+		Templates:                     NewTemplate(config),
+		TemplateType:                  NewTemplateType(config),
+		SocialProvider:                NewSocialProvider(config),
+		PasswordPolicy:                NewPasswordPolicy(config),
+		ConsentGroup:                  NewConsentGroup(config),
+		Consent:                       NewConsent(config),
+		ConsentVersion:                NewConsentVersion(config),
 	}
 	return client, nil
 }
