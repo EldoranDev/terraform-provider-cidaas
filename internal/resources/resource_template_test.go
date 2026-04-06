@@ -223,7 +223,8 @@ func TestTemplate_MissingRequired(t *testing.T) {
 	}
 }
 
-// System Template basic create, update and delete, system template can not be imported
+// System Template basic create, update and delete, system template can not be imported.
+// Use group_id "default" (built-in template group); "sample_group" is only in examples and often missing in CI tenants, which can cause templates-srv 500 on create.
 func TestTemplate_SystemTemplateBasic(t *testing.T) {
 	t.Parallel()
 
@@ -246,7 +247,7 @@ func TestTemplate_SystemTemplateBasic(t *testing.T) {
 					template_type      = "SMS"
 					content            = "Hi {{name}}, here is the {{code}} to verify the user"
 					is_system_template = true
-					group_id           = "sample_group"
+					group_id           = "default"
 					processing_type    = "GENERAL"
 					verification_type  = "SMS"
 					usage_type         = "VERIFICATION_CONFIGURATION"
@@ -268,7 +269,7 @@ func TestTemplate_SystemTemplateBasic(t *testing.T) {
 					template_type      = "SMS"
 					content            = "Hi {{name}}, here is the {{code}} to verify the user updated"
 					is_system_template = true
-					group_id           = "sample_group"
+					group_id           = "default"
 					processing_type    = "GENERAL"
 					verification_type  = "SMS"
 					usage_type         = "VERIFICATION_CONFIGURATION"
@@ -290,7 +291,7 @@ func TestTemplate_SystemTemplateBasic(t *testing.T) {
 					template_type      = "SMS"
 					content            = "Hi {{name}}, here is the {{code}} to verify the user"
 					is_system_template = true
-					group_id           = "sample_group"
+					group_id           = "default"
 					processing_type    = "GENERAL"
 					verification_type  = "SMS"
 					usage_type         = "VERIFICATION_CONFIGURATION"
