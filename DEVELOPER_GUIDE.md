@@ -612,6 +612,8 @@ This will:
 - Include examples from the `examples/` folder
 - Create provider documentation automatically
 
+**Guides:** Add or edit Markdown under `templates/guides/*.md.tmpl`. Running `go generate ./...` renders them to `docs/guides/` for the Terraform Registry. Do not edit only `docs/guides/` by hand, as the next generate pass overwrites those files.
+
 ## Release Process
 
 > **Note**: The release process is handled by internal maintainers. This section is for reference and contribution context.
@@ -671,6 +673,16 @@ The release process is automated:
 - Update documentation and changelog entries
 - All release management is handled by the maintainer team
 - No manual binary building required
+
+### Pre-release review checklist
+
+Before tagging a release, maintainers should verify:
+
+1. **Changelog:** `CHANGELOG.md` and `RELEASE_MESSAGE_<version>.md` match the Git diff and user-facing scope.
+2. **Docs:** `go generate ./...` committed; `templates/guides/` sources present for any guides; `examples/` `terraform fmt -recursive` applied.
+3. **Notification-srv (if touched):** `internal/resources/resource_notification_template_type.go` — `ModifyPlan`, owner default, and communication method normalization; helpers under `helpers/cidaas/` for context and URLs; `notifications_context_path` in [internal/provider.go](internal/provider.go).
+4. **Regression areas:** Registration field GROUPING and app MFA/guest login if included in the same release.
+5. **Automation:** `go test ./...`, `go vet ./...`, and linter (e.g. `golangci-lint run` or CI) pass.
 
 ## Getting Help
 
