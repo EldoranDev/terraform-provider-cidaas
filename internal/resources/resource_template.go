@@ -126,9 +126,8 @@ var templateSchema = schema.Schema{
 		},
 		"template_owner": schema.StringAttribute{
 			Computed: true,
-			PlanModifiers: []planmodifier.String{
-				stringplanmodifier.UseStateForUnknown(),
-			},
+			// Do not use UseStateForUnknown: API may return a different owner after update
+			// (e.g. client vs admin) and the plan must match the Upsert response.
 			MarkdownDescription: "The template owner of the template.",
 		},
 		"usage_type": schema.StringAttribute{
