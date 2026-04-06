@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"strings"
 
 	"github.com/Cidaas/terraform-provider-cidaas/helpers/util"
@@ -36,8 +37,8 @@ type TemplateTypePatchModel struct {
 }
 
 type TemplateTypeResponse struct {
-	Success bool             `json:"success,omitempty"`
-	Status  int              `json:"status,omitempty"`
+	Success bool              `json:"success,omitempty"`
+	Status  int               `json:"status,omitempty"`
 	Data    TemplateTypeModel `json:"data,omitempty"`
 }
 
@@ -60,8 +61,8 @@ func NewTemplateType(clientConfig ClientConfig) *TemplateTypeServiceImpl {
 
 func (t *TemplateTypeServiceImpl) Upsert(templateType TemplateTypeModel) (*TemplateTypeResponse, error) {
 	var response TemplateTypeResponse
-	url := fmt.Sprintf("%s/templatetypes", t.BaseURL)
-	httpClient, err := util.NewHTTPClient(url, http.MethodPost, t.AccessToken)
+	u := SegmentNotificationsURL(t.ClientConfig, "templatetypes")
+	httpClient, err := util.NewHTTPClient(u, http.MethodPost, t.AccessToken)
 	if err != nil {
 		return nil, err
 	}
@@ -91,8 +92,8 @@ func (t *TemplateTypeServiceImpl) Upsert(templateType TemplateTypeModel) (*Templ
 func (t *TemplateTypeServiceImpl) Get(id string) (*TemplateTypeResponse, error) {
 	var response TemplateTypeResponse
 	id = strings.ToUpper(id)
-	url := fmt.Sprintf("%s/templatetypes/%s", t.BaseURL, id)
-	httpClient, err := util.NewHTTPClient(url, http.MethodGet, t.AccessToken)
+	u := SegmentNotificationsURL(t.ClientConfig, "templatetypes", url.PathEscape(id))
+	httpClient, err := util.NewHTTPClient(u, http.MethodGet, t.AccessToken)
 	if err != nil {
 		return nil, err
 	}
@@ -126,8 +127,8 @@ func (t *TemplateTypeServiceImpl) Get(id string) (*TemplateTypeResponse, error) 
 func (t *TemplateTypeServiceImpl) Patch(patch TemplateTypePatchModel) (*TemplateTypeResponse, error) {
 	var response TemplateTypeResponse
 	id := strings.ToUpper(patch.ID)
-	url := fmt.Sprintf("%s/templatetypes/%s", t.BaseURL, id)
-	httpClient, err := util.NewHTTPClient(url, http.MethodPatch, t.AccessToken)
+	u := SegmentNotificationsURL(t.ClientConfig, "templatetypes", url.PathEscape(id))
+	httpClient, err := util.NewHTTPClient(u, http.MethodPatch, t.AccessToken)
 	if err != nil {
 		return nil, err
 	}
@@ -156,8 +157,8 @@ func (t *TemplateTypeServiceImpl) Patch(patch TemplateTypePatchModel) (*Template
 
 func (t *TemplateTypeServiceImpl) Delete(id string) error {
 	id = strings.ToUpper(id)
-	url := fmt.Sprintf("%s/templatetypes/%s", t.BaseURL, id)
-	httpClient, err := util.NewHTTPClient(url, http.MethodDelete, t.AccessToken)
+	u := SegmentNotificationsURL(t.ClientConfig, "templatetypes", url.PathEscape(id))
+	httpClient, err := util.NewHTTPClient(u, http.MethodDelete, t.AccessToken)
 	if err != nil {
 		return err
 	}
@@ -170,3 +171,32 @@ func (t *TemplateTypeServiceImpl) Delete(id string) error {
 	return nil
 }
 
+// FindGraphTemplateTypes POST /graph/templatetypes/ with graph filter body.
+func (t *TemplateTypeServiceImpl) FindGraphTemplateTypes(ctx context.Context, filter json.RawMessage) ([]TemplateTypeModel, error) {
+	u := SegmentNotificationsURL(t.ClientConfig, "graph", "templatetypes")
+	httpClient, err := util.NewHTTPClient(u, http.MethodPost, t.AccessToken)
+	if err != nil {
+		return nil, err
+	}
+	var body interface{}
+	if len(filter) > 0 {
+		body = filter
+	}
+	res, err := httpClient.MakeRequest(ctx, body)
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+	bodyBytes, err := io.ReadAll(res.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read graph/templatetypes body: %w", err)
+	}
+	out, err := ParseNotificationSrvData[[]TemplateTypeModel](bodyBytes, res.StatusCode)
+	if err != nil {
+		return nil, err
+	}
+	if out == nil {
+		return nil, nil
+	}
+	return *out, nil
+}

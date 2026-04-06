@@ -22,7 +22,8 @@ type cidaasProvider struct {
 }
 
 type Model struct {
-	BaseURL types.String `tfsdk:"base_url"`
+	BaseURL                  types.String `tfsdk:"base_url"`
+	NotificationsContextPath types.String `tfsdk:"notifications_context_path"`
 }
 
 func Cidaas(version string) func() provider.Provider {
@@ -45,6 +46,12 @@ func (p *cidaasProvider) Schema(_ context.Context, _ provider.SchemaRequest, res
 				Required:    true,
 				Description: "The base url of the Terraform client",
 			},
+			"notifications_context_path": schema.StringAttribute{
+				Optional: true,
+				Description: "URL path segment for notification-srv APIs (default: `notifications-srv`). " +
+					"Used by notification-srv resources and datasources (`cidaas_notifications_template_group`, `cidaas_notification_template`, `cidaas_notification_template_type`, service setups, graph datasources). " +
+					"Legacy `cidaas_template` / `cidaas_template_group` use `templates-srv` and ignore this setting.",
+			},
 		},
 	}
 }
@@ -60,6 +67,9 @@ func (p *cidaasProvider) DataSources(_ context.Context) []func() datasource.Data
 		cidaasDataSources.NewSocialProvider,
 		cidaasDataSources.NewCustomProvider,
 		cidaasDataSources.NewRegistrationField,
+		cidaasDataSources.NewNotificationServiceSetups,
+		cidaasDataSources.NewNotificationTemplates,
+		cidaasDataSources.NewNotificationTemplateGroupsGraph,
 	}
 }
 
@@ -78,8 +88,10 @@ func (p *cidaasProvider) Resources(_ context.Context) []func() resource.Resource
 		cidaasResource.NewAppResource,
 		cidaasResource.NewRegFieldResource,
 		cidaasResource.NewTemplateGroupResource,
+		cidaasResource.NewNotificationsTemplateGroupResource,
 		cidaasResource.NewTemplateResource,
 		cidaasResource.NewNotificationTemplateTypeResource,
+		cidaasResource.NewNotificationTemplateResource,
 		cidaasResource.NewPasswordPolicy,
 		cidaasResource.NewConsentResource,
 		cidaasResource.NewConsentVersionResource,
@@ -122,9 +134,10 @@ func (p *cidaasProvider) Configure(ctx context.Context, req provider.ConfigureRe
 	})
 
 	clientConfig := cidaas.ClientConfig{
-		ClientID:     clientID,
-		ClientSecret: clientSecret,
-		BaseURL:      data.BaseURL.ValueString(),
+		ClientID:                 clientID,
+		ClientSecret:             clientSecret,
+		BaseURL:                  data.BaseURL.ValueString(),
+		NotificationsContextPath: data.NotificationsContextPath.ValueString(),
 	}
 
 	tflog.Info(ctx, "Creating cidaas client", util.H{

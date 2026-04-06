@@ -22,29 +22,29 @@ type AllRegFieldResponse struct {
 }
 
 type RegistrationFieldConfig struct {
-	Internal                                 bool                  `json:"internal"`
-	ReadOnly                                 bool                  `json:"readOnly"`
-	Claimable                                bool                  `json:"claimable"`
-	Required                                 bool                  `json:"required"`
-	Unique                                   bool                  `json:"unique"`
-	IsSearchable                             bool                  `json:"isSearchable"`
-	OverwriteWithNullValueFromSocialProvider bool                  `json:"overwriteWithNullValueFromSocialProvider"`
-	ConsentRefs                              []string              `json:"consent_refs,omitempty"`
-	Scopes                                   []string              `json:"scopes,omitempty"`
-	Enabled                                  bool                  `json:"enabled"`
-	LocaleTexts                              []*LocaleText         `json:"localeTexts,omitempty"`
-	IsGroup                                  bool                  `json:"is_group"`
-	IsList                                   bool                  `json:"is_list"`
-	ParentGroupID                            string                `json:"parent_group_id,omitempty"`
-	FieldType                                string                `json:"fieldType,omitempty"`
-	ID                                       string                `json:"_id,omitempty"`
-	FieldKey                                 string                `json:"fieldKey,omitempty"`
-	DataType                                 string                `json:"dataType,omitempty"`
-	Order                                    int64                 `json:"order,omitempty"`
-	BaseDataType                             string                `json:"baseDataType,omitempty"`
-	FieldDefinition                          *FieldDefinition      `json:"fieldDefinition,omitempty"`
-	ClassName                                string                `json:"className,omitempty"`
-	RemoteSettings                           *RemoteFieldSettings  `json:"remoteFieldSettings,omitempty"`
+	Internal                                 bool                 `json:"internal"`
+	ReadOnly                                 bool                 `json:"readOnly"`
+	Claimable                                bool                 `json:"claimable"`
+	Required                                 bool                 `json:"required"`
+	Unique                                   bool                 `json:"unique"`
+	IsSearchable                             bool                 `json:"isSearchable"`
+	OverwriteWithNullValueFromSocialProvider bool                 `json:"overwriteWithNullValueFromSocialProvider"`
+	ConsentRefs                              []string             `json:"consent_refs,omitempty"`
+	Scopes                                   []string             `json:"scopes,omitempty"`
+	Enabled                                  bool                 `json:"enabled"`
+	LocaleTexts                              []*LocaleText        `json:"localeTexts,omitempty"`
+	IsGroup                                  bool                 `json:"is_group"`
+	IsList                                   bool                 `json:"is_list"`
+	ParentGroupID                            string               `json:"parent_group_id,omitempty"`
+	FieldType                                string               `json:"fieldType,omitempty"`
+	ID                                       string               `json:"_id,omitempty"`
+	FieldKey                                 string               `json:"fieldKey,omitempty"`
+	DataType                                 string               `json:"dataType,omitempty"`
+	Order                                    int64                `json:"order,omitempty"`
+	BaseDataType                             string               `json:"baseDataType,omitempty"`
+	FieldDefinition                          *FieldDefinition     `json:"fieldDefinition,omitempty"`
+	ClassName                                string               `json:"className,omitempty"`
+	RemoteSettings                           *RemoteFieldSettings `json:"remoteFieldSettings,omitempty"`
 }
 
 // RemoteFieldSettings is optional and only valid when dataType is GROUPING.
@@ -55,17 +55,17 @@ type RemoteFieldSettings struct {
 }
 
 type ApiClientSetup struct {
-	CommunicationEP string           `json:"communicationEP,omitempty"`
-	HttpMethod      string           `json:"httpMethod,omitempty"`
-	ApiAccess       APIAccessSetup   `json:"apiAccess,omitempty"`
+	CommunicationEP string         `json:"communicationEP,omitempty"`
+	HttpMethod      string         `json:"httpMethod,omitempty"`
+	ApiAccess       APIAccessSetup `json:"apiAccess,omitempty"`
 }
 
 type APIAccessSetup struct {
-	ApiAccessType     string           `json:"apiAccessType,omitempty"`
-	APIKeyDetails     *APIKeySetup     `json:"apikeyDetails,omitempty"`
-	TotpDetails       *TotpSetup       `json:"totpDetails,omitempty"`
-	BasicAuthDetails  *BasicAuthSetup  `json:"basicAuthDetails,omitempty"`
-	OAuth2Details     *OAuth2Setup     `json:"oAuthDetails,omitempty"`
+	ApiAccessType    string          `json:"apiAccessType,omitempty"`
+	APIKeyDetails    *APIKeySetup    `json:"apikeyDetails,omitempty"`
+	TotpDetails      *TotpSetup      `json:"totpDetails,omitempty"`
+	BasicAuthDetails *BasicAuthSetup `json:"basicAuthDetails,omitempty"`
+	OAuth2Details    *OAuth2Setup    `json:"oAuthDetails,omitempty"`
 }
 
 type APIKeySetup struct {

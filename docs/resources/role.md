@@ -3,20 +3,19 @@
 page_title: "cidaas_role Resource - cidaas"
 subcategory: ""
 description: |-
-  The cidaas_role resource in Terraform facilitates the management of roles in cidaas system. This resource allows you to configure and define custom roles to suit your application's specific access control requirements.
+  The cidaas_role resource in Terraform facilitates the management of roles in Cidaas system. This resource allows you to configure and define custom roles to suit your application's specific access control requirements.
   Ensure that the below scopes are assigned to the client with the specified client_id:
   cidaas:roles_readcidaas:roles_writecidaas:roles_delete
 ---
 
 # cidaas_role (Resource)
 
-The cidaas_role resource in Terraform facilitates the management of roles in cidaas system. This resource allows you to configure and define custom roles to suit your application's specific access control requirements.
+The cidaas_role resource in Terraform facilitates the management of roles in Cidaas system. This resource allows you to configure and define custom roles to suit your application's specific access control requirements.
 
  Ensure that the below scopes are assigned to the client with the specified `client_id`:
-
-* cidaas:roles_read
-* cidaas:roles_write
-* cidaas:roles_delete
+- cidaas:roles_read
+- cidaas:roles_write
+- cidaas:roles_delete
 
 ## Example Usage
 
@@ -33,20 +32,22 @@ resource "cidaas_role" "sample" {
 
 ### Required
 
-* `role` (String) The unique identifier of the role. The role name must be unique across the cidaas system and cannot be updated for an existing state.
+- `role` (String) The unique identifier of the role. The role name must be unique across the cidaas system and cannot be updated for an existing state.
 
 ### Optional
 
-* `description` (String) The `description` attribute provides details about the role, explaining its purpose.
-* `name` (String) The name of the role.
+- `description` (String) The `description` attribute provides details about the role, explaining its purpose.
+- `name` (String) The name of the role.
 
 ### Read-Only
 
-* `id` (String) The ID of the role resource.
+- `id` (String) The ID of the role resource.
 
 ## Import
 
 Import is supported using the following syntax:
+
+The [`terraform import` command](https://developer.hashicorp.com/terraform/cli/commands/import) can be used, for example:
 
 ```shell
 terraform import cidaas_role.resource_name role
