@@ -284,7 +284,10 @@ func TestTemplate_CustomTemplateBasic(t *testing.T) {
 // System Template basic create, update and delete, system template can not be imported.
 // Opt-in only: templates-srv frequently returns HTTP 500 (code 35001) for system template
 // POST in CI / shared tenants (VERIFY_USER constraints, master list, tenant policy).
-// Run manually: RUN_TEMPLATE_SYSTEM_ACC_TEST=1 TF_ACC=1 go test ./internal/resources/ -run TestTemplate_SystemTemplateBasic -v
+// Run manually (all required for a real apply):
+//
+//	RUN_TEMPLATE_SYSTEM_ACC_TEST=1 TF_ACC=1 BASE_URL=... TERRAFORM_PROVIDER_CIDAAS_CLIENT_ID=... TERRAFORM_PROVIDER_CIDAAS_CLIENT_SECRET=... \
+//	  go test ./internal/resources/ -run TestTemplate_SystemTemplateBasic -v
 func TestTemplate_SystemTemplateBasic(t *testing.T) {
 	if os.Getenv("RUN_TEMPLATE_SYSTEM_ACC_TEST") != "1" {
 		t.Skip("set RUN_TEMPLATE_SYSTEM_ACC_TEST=1 to run; system template create is flaky on shared tenants (templates-srv 35001)")
@@ -295,7 +298,16 @@ func TestTemplate_SystemTemplateBasic(t *testing.T) {
 	testResourceName := fmt.Sprintf("%s.%s", resources.RESOURCE_TEMPLATE, testResourceID)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
+		PreCheck: func() {
+			// Skip instead of Fatal when env is incomplete (TestAccPreCheck uses t.Fatal).
+			if os.Getenv("TF_ACC") == "" {
+				t.Skip("set TF_ACC=1 for acceptance tests (along with BASE_URL and TERRAFORM_PROVIDER_CIDAAS_CLIENT_ID / TERRAFORM_PROVIDER_CIDAAS_CLIENT_SECRET)")
+			}
+			if os.Getenv("BASE_URL") == "" || os.Getenv("TERRAFORM_PROVIDER_CIDAAS_CLIENT_ID") == "" || os.Getenv("TERRAFORM_PROVIDER_CIDAAS_CLIENT_SECRET") == "" {
+				t.Skip("set BASE_URL, TERRAFORM_PROVIDER_CIDAAS_CLIENT_ID, and TERRAFORM_PROVIDER_CIDAAS_CLIENT_SECRET for acceptance tests")
+			}
+			acctest.TestAccPreCheck(t)
+		},
 		ProtoV6ProviderFactories: acctest.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             checkTemplateDestroyed(testResourceName),
 		Steps: []resource.TestStep{
