@@ -512,7 +512,9 @@ Run a single specific test case:
 TF_ACC=1 go test ./internal/provider -run TestApp_Basic -v
 ```
 
-**Legacy `cidaas_template` system template:** `TestTemplate_SystemTemplateBasic` is skipped by default because templates-srv often returns HTTP 500 on shared tenants. To run it against a tenant where system template POST succeeds, set `RUN_TEMPLATE_SYSTEM_ACC_TEST=1` in addition to `TF_ACC=1`.
+**Legacy `cidaas_template` (templates-srv):** acceptance tests that call templates-srv are **opt-in** because shared CI tenants often return HTTP 500 (code 35001) on template POST. Set `TF_ACC=1` and credentials as usual, plus:
+- `RUN_TEMPLATE_CUSTOM_ACC_TEST=1` for `TestTemplate_CustomTemplateBasic` (custom templates)
+- `RUN_TEMPLATE_SYSTEM_ACC_TEST=1` for `TestTemplate_SystemTemplateBasic` (system templates)
 
 ### Test Coverage
 
