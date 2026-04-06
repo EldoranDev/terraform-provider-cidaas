@@ -60,7 +60,9 @@ func NewTemplateResource() resource.Resource {
 }
 
 var templateSchema = schema.Schema{
-	MarkdownDescription: "The Template resource in the provider is used to define and manage templates within the Cidaas system." +
+	MarkdownDescription: "**Deprecated for new designs:** this resource uses legacy **templates-srv**. " +
+		"For notification-srv (`/{notifications_context_path}/templates`), use **`cidaas_notification_template`** instead.\n\n" +
+		"The Template resource in the provider is used to define and manage templates within the Cidaas system." +
 		" Templates are used for emails, SMS, IVR, and push notifications." +
 		"\n\n Ensure that the below scopes are assigned to the client with the specified `client_id`:" +
 		"\n- cidaas:templates_read" +

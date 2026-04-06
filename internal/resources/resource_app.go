@@ -677,10 +677,12 @@ func updateAppState(state *AppConfig, resp cidaas.AppResponse, isImport bool) {
 		var allowedGroupObjectValues []attr.Value
 		for _, group := range data.AllowGuestLoginGroups {
 			groupID := group.GroupID
+			groupType := group.GroupType
 			objValue := types.ObjectValueMust(
 				allowedGroupsObjectType.AttrTypes,
 				map[string]attr.Value{
 					"group_id":      util.StringValueOrNull(&groupID),
+					"group_type":    util.StringValueOrNull(&groupType),
 					"roles":         util.SetValueOrNull(group.Roles),
 					"default_roles": util.SetValueOrNull(group.DefaultRoles),
 				})

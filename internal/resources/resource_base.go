@@ -11,24 +11,26 @@ import (
 
 // nolint:revive
 const (
-	RESOURCE_APP                = "cidaas_app"                // nolint:stylecheck
-	RESOURCE_CONSENT_GROUP      = "cidaas_consent_group"      // nolint:stylecheck
-	RESOURCE_CONSENT_VERSION    = "cidaas_consent_version"    // nolint:stylecheck
-	RESOURCE_CONSENT            = "cidaas_consent"            // nolint:stylecheck
-	RESOURCE_CUSTOM_PROVIDER    = "cidaas_custom_provider"    // nolint:stylecheck
-	RESOURCE_GROUP_TYPE         = "cidaas_group_type"         // nolint:stylecheck
-	RESOURCE_HOSTED_PAGE        = "cidaas_hosted_page"        // nolint:stylecheck
-	RESOURCE_PASSWORD_POLICY    = "cidaas_password_policy"    // nolint:stylecheck
-	RESOURCE_REGISTRATION_FIELD = "cidaas_registration_field" // nolint:stylecheck
-	RESOURCE_ROLE               = "cidaas_role"               // nolint:stylecheck
-	RESOURCE_SCOPE_GROUP        = "cidaas_scope_group"        // nolint:stylecheck
-	RESOURCE_SCOPE              = "cidaas_scope"              // nolint:stylecheck
-	RESOURCE_SOCIAL_PROVIDER    = "cidaas_social_provider"    // nolint:stylecheck
-	RESOURCE_TEMPLATE_GROUP             = "cidaas_template_group"             // nolint:stylecheck
-	RESOURCE_TEMPLATE                   = "cidaas_template"                   // nolint:stylecheck
-	RESOURCE_NOTIFICATION_TEMPLATE_TYPE = "cidaas_notification_template_type" // nolint:stylecheck
-	RESOURCE_USER_GROUP                 = "cidaas_user_groups"                // nolint:stylecheck
-	RESOURCE_WEBHOOK            = "cidaas_webhook"            // nolint:stylecheck
+	RESOURCE_APP                          = "cidaas_app"                          // nolint:stylecheck
+	RESOURCE_CONSENT_GROUP                = "cidaas_consent_group"                // nolint:stylecheck
+	RESOURCE_CONSENT_VERSION              = "cidaas_consent_version"              // nolint:stylecheck
+	RESOURCE_CONSENT                      = "cidaas_consent"                      // nolint:stylecheck
+	RESOURCE_CUSTOM_PROVIDER              = "cidaas_custom_provider"              // nolint:stylecheck
+	RESOURCE_GROUP_TYPE                   = "cidaas_group_type"                   // nolint:stylecheck
+	RESOURCE_HOSTED_PAGE                  = "cidaas_hosted_page"                  // nolint:stylecheck
+	RESOURCE_PASSWORD_POLICY              = "cidaas_password_policy"              // nolint:stylecheck
+	RESOURCE_REGISTRATION_FIELD           = "cidaas_registration_field"           // nolint:stylecheck
+	RESOURCE_ROLE                         = "cidaas_role"                         // nolint:stylecheck
+	RESOURCE_SCOPE_GROUP                  = "cidaas_scope_group"                  // nolint:stylecheck
+	RESOURCE_SCOPE                        = "cidaas_scope"                        // nolint:stylecheck
+	RESOURCE_SOCIAL_PROVIDER              = "cidaas_social_provider"              // nolint:stylecheck
+	RESOURCE_TEMPLATE_GROUP               = "cidaas_template_group"               // nolint:stylecheck
+	RESOURCE_NOTIFICATIONS_TEMPLATE_GROUP = "cidaas_notifications_template_group" // nolint:stylecheck
+	RESOURCE_TEMPLATE                     = "cidaas_template"                     // nolint:stylecheck
+	RESOURCE_NOTIFICATION_TEMPLATE_TYPE   = "cidaas_notification_template_type"   // nolint:stylecheck
+	RESOURCE_NOTIFICATION_TEMPLATE        = "cidaas_notification_template"        // nolint:stylecheck
+	RESOURCE_USER_GROUP                   = "cidaas_user_groups"                  // nolint:stylecheck
+	RESOURCE_WEBHOOK                      = "cidaas_webhook"                      // nolint:stylecheck
 )
 
 type BaseResourceConfig struct {

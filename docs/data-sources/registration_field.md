@@ -59,7 +59,6 @@ Read-Only:
 - `field_type` (String) Specifies whether the field type is `SYSTEM` or `CUSTOM`.
 - `id` (String) The unique identifier of the group type.
 - `internal` (Boolean) Flag to identify if a field is internal.
-- `is_group` (Boolean) Flag to identify if a field is group field.
 - `order` (Number) The order of the Field in the UI.
 - `parent_group_id` (String) The ID of the parent registration group.
 - `read_only` (Boolean) Flag to identify if a field is read only.
