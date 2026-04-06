@@ -512,6 +512,8 @@ Run a single specific test case:
 TF_ACC=1 go test ./internal/provider -run TestApp_Basic -v
 ```
 
+**Legacy `cidaas_template` system template:** `TestTemplate_SystemTemplateBasic` is skipped by default because templates-srv often returns HTTP 500 on shared tenants. To run it against a tenant where system template POST succeeds, set `RUN_TEMPLATE_SYSTEM_ACC_TEST=1` in addition to `TF_ACC=1`.
+
 ### Test Coverage
 
 Generate comprehensive test coverage report:
