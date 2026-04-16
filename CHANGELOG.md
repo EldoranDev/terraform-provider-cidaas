@@ -1,5 +1,15 @@
 ## Changelog
 
+### 3.5.8
+
+#### Enhancements
+
+- **cidaas_app:** Optional `hints` set under `group_role_restriction` for group verification response shaping. Allowed values: `groupIds`, `rolesOfGroup`, `allowedGroups` (API field `hints`). The sample module variable type includes optional `hints`.
+
+#### Bug Fixes
+
+- **Scope client:** `Get` and `Delete` no longer normalize scope keys to lowercase; the query parameter and path segment match the scope key passed in, so mixed- or upper-case canonical keys from Cidaas are addressed correctly (see framework issue #1856).
+
 ### 3.5.6
 
 #### Enhancements
@@ -19,6 +29,7 @@
 
 - **Registration field data source:** The list endpoint for registration fields now uses `fieldsetup-srv/graph/fields` instead of `registration-setup-srv/fields/list`, aligning with the current Cidaas API.
 - **Notification template type:** The Cidaas client now exposes the template type service, enabling the `cidaas_notification_template_type` resource to manage template types via the provider.
+- **Documentation:** Migration guide for classic `cidaas_template` / `cidaas_template_group` vs `cidaas_notification_template_type`: `docs/guides/migration-template-to-notification-template-type.md`.
 
 #### Bug Fixes
 
