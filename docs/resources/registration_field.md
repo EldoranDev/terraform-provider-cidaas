@@ -74,13 +74,12 @@ resource "cidaas_registration_field" "text" {
 - `field_definition` (Attributes) (see [below for nested schema](#nestedatt--field_definition))
 - `field_type` (String) Specifies whether the field type is `SYSTEM` or `CUSTOM`. Defaults to `CUSTOM`. This cannot be modified for an existing resource. `SYSTEM` fields cannot be created but can be modified. To modify an existing field import it first and then update.
 - `internal` (Boolean) Flag to mark if a field is internal. Defaults set to `false`
-- `is_group` (Boolean) Setting is_group to `true` creates a registration field group. Defaults set to `false` The data_type attribute must be set to TEXT when is_group is true.
 - `is_list` (Boolean)
 - `is_searchable` (Boolean) Flag to mark if a field is searchable. Defaults set to `true`
-- `order` (Number) The attribute order is used to set the order of the Field in the UI. Defaults set to `1`
 - `overwrite_with_null_value_from_social_provider` (Boolean) Set to true if you want the value should be reset by identity provider. Defaults set to `false`
 - `parent_group_id` (String) The ID of the parent registration group. Defaults to `DEFAULT` if not provided.
 - `read_only` (Boolean) Flag to mark if a field is read only. Defaults set to `false`
+- `remote_field_settings` (Block, Optional) Remote field settings for GROUPING fields that fetch data from an external API. Only valid when data_type is GROUPING. (see [below for nested schema](#nestedblock--remote_field_settings))
 - `required` (Boolean) Flag to mark if a field is required in registration. Defaults set to `false`
 - `scopes` (Set of String) The scopes of the registration field.
 - `unique` (Boolean) Flag to mark if a field is unique. Defaults set to `false`
@@ -89,6 +88,7 @@ resource "cidaas_registration_field" "text" {
 
 - `base_data_type` (String) The base data type of the field. This is computed property.
 - `id` (String) The ID of the resource
+- `order` (Number) The attribute order is used to set the order of the Field in the UI.
 
 <a id="nestedatt--local_texts"></a>
 ### Nested Schema for `local_texts`
@@ -137,6 +137,77 @@ Optional:
 - `min_date` (String) The earliest date a user can select. Applicable only for DATE attributes. Example format: `2024-06-28T18:30:00Z`.
 - `min_length` (Number) The minimum length of a string type attribute
 - `regex` (String) The regex for max_length and min_length for the data types TEXT and URL.
+
+
+<a id="nestedblock--remote_field_settings"></a>
+### Nested Schema for `remote_field_settings`
+
+Optional:
+
+- `api_client_setup` (Block, Optional) API client configuration for the remote endpoint. (see [below for nested schema](#nestedblock--remote_field_settings--api_client_setup))
+- `call_once` (Boolean) When true, the remote API is called once per session.
+
+<a id="nestedblock--remote_field_settings--api_client_setup"></a>
+### Nested Schema for `remote_field_settings.api_client_setup`
+
+Optional:
+
+- `api_access_type` (String) Authentication type: APIKEY, TOTP, BASIC_AUTH, CIDAAS_OAUTH2, or GEN_OAUTH2.
+- `apikey_config` (Block, Optional) Required when api_access_type is APIKEY. (see [below for nested schema](#nestedblock--remote_field_settings--api_client_setup--apikey_config))
+- `basic_auth_config` (Block, Optional) Required when api_access_type is BASIC_AUTH. (see [below for nested schema](#nestedblock--remote_field_settings--api_client_setup--basic_auth_config))
+- `cidaas_oauth2_config` (Block, Optional) Required when api_access_type is CIDAAS_OAUTH2. (see [below for nested schema](#nestedblock--remote_field_settings--api_client_setup--cidaas_oauth2_config))
+- `communication_ep` (String) The remote API endpoint URL. Supports {{sub}} placeholder.
+- `gen_oauth2_config` (Block, Optional) Required when api_access_type is GEN_OAUTH2. (see [below for nested schema](#nestedblock--remote_field_settings--api_client_setup--gen_oauth2_config))
+- `http_method` (String) HTTP method (e.g. GET, POST).
+- `totp_config` (Block, Optional) Required when api_access_type is TOTP. (see [below for nested schema](#nestedblock--remote_field_settings--api_client_setup--totp_config))
+
+<a id="nestedblock--remote_field_settings--api_client_setup--apikey_config"></a>
+### Nested Schema for `remote_field_settings.api_client_setup.apikey_config`
+
+Optional:
+
+- `apikey` (String)
+- `apikey_placeholder` (String)
+- `apikey_placement` (String)
+
+
+<a id="nestedblock--remote_field_settings--api_client_setup--basic_auth_config"></a>
+### Nested Schema for `remote_field_settings.api_client_setup.basic_auth_config`
+
+Optional:
+
+- `password` (String)
+- `user` (String)
+
+
+<a id="nestedblock--remote_field_settings--api_client_setup--cidaas_oauth2_config"></a>
+### Nested Schema for `remote_field_settings.api_client_setup.cidaas_oauth2_config`
+
+Optional:
+
+- `client_id` (String)
+- `req_scopes` (String)
+
+
+<a id="nestedblock--remote_field_settings--api_client_setup--gen_oauth2_config"></a>
+### Nested Schema for `remote_field_settings.api_client_setup.gen_oauth2_config`
+
+Optional:
+
+- `client_id` (String)
+- `client_secret` (String)
+- `req_scopes` (String)
+- `wellknown_url` (String)
+
+
+<a id="nestedblock--remote_field_settings--api_client_setup--totp_config"></a>
+### Nested Schema for `remote_field_settings.api_client_setup.totp_config`
+
+Optional:
+
+- `totp_placeholder` (String)
+- `totp_placement` (String)
+- `totpkey` (String)
 
 ## Import
 

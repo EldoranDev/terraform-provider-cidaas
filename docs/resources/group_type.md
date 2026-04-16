@@ -2,20 +2,24 @@
 page_title: "cidaas_group_type Resource - cidaas"
 subcategory: ""
 description: |-
-  The Group Type, managed through the cidaas_group_type resource in the provider defines and configures categories for user groups within the cidaas system.
+  The Group Type, managed through the cidaas_group_type resource in the provider defines and configures categories for user groups within the Cidaas system.
   Ensure that the below scopes are assigned to the client with the specified client_id:
   cidaas:group_type_readcidaas:group_type_writecidaas:group_type_delete
 ---
 
-# cidaas_group_type (Resource)
+# cidaas_group_type (Resource)-Previously cidaas_user_group_category
 
-The Group Type, managed through the `cidaas_group_type` resource in the provider defines and configures categories for user groups within the cidaas system.
+The Group Type, managed through the `cidaas_group_type` resource in the provider defines and configures categories for user groups within the Cidaas system.
 
  Ensure that the below scopes are assigned to the client with the specified `client_id`:
+- cidaas:group_type_read
+- cidaas:group_type_write
+- cidaas:group_type_delete
 
-* cidaas:group_type_read
-* cidaas:group_type_write
-* cidaas:group_type_delete
+
+### V2 to V3 Migration:
+If you are migrating from v2 to v3, please note that `cidaas_user_group_category` has been renamed to `cidaas_group_type`.
+Please update your Terraform configuration files accordingly to ensure compatibility with the latest version(v3).
 
 ## Example Usage
 
@@ -33,19 +37,19 @@ resource "cidaas_group_type" "sample" {
 
 ### Required
 
-* `group_type` (String) The unique identifier of the group type. This cannot be updated for an existing state.
-* `role_mode` (String) Determines the role mode for the user group type. Allowed values are `any_roles`, `no_roles`, `roles_required` and `allowed_roles`
+- `group_type` (String) The unique identifier of the group type. This cannot be updated for an existing state.
+- `role_mode` (String) Determines the role mode for the user group type. Allowed values are `any_roles`, `no_roles`, `roles_required` and `allowed_roles`
 
 ### Optional
 
-* `allowed_roles` (Set of String) List of allowed roles in this group type.
-* `description` (String) The `description` attribute provides details about the group type, explaining its purpose.
+- `allowed_roles` (Set of String) List of allowed roles in this group type.
+- `description` (String) The `description` attribute provides details about the group type, explaining its purpose.
 
 ### Read-Only
 
-* `created_at` (String) The timestamp when the resource was created.
-* `id` (String) The ID of the resource.
-* `updated_at` (String) The timestamp when the resource was last updated.
+- `created_at` (String) The timestamp when the resource was created.
+- `id` (String) The ID of the resource.
+- `updated_at` (String) The timestamp when the resource was last updated.
 
 ## Import
 
