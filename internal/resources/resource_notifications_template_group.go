@@ -96,7 +96,7 @@ var notificationsTemplateGroupSchema = schema.Schema{
 			},
 		},
 		"description": schema.StringAttribute{
-			Required: true,
+			Required:            true,
 			MarkdownDescription: "Description (10–600 characters per notification-srv validation).",
 			Validators: []validator.String{
 				stringvalidator.LengthBetween(10, 600),
@@ -107,9 +107,9 @@ var notificationsTemplateGroupSchema = schema.Schema{
 			MarkdownDescription: "Default locale (BCP47), e.g. `en`, `de`.",
 		},
 		"owner": schema.StringAttribute{
-			Optional: true,
-			Computed: true,
-			Default:  stringdefault.StaticString("client"),
+			Optional:            true,
+			Computed:            true,
+			Default:             stringdefault.StaticString("client"),
 			MarkdownDescription: "Object owner, e.g. `client`.",
 		},
 		"enabled": schema.BoolAttribute{
@@ -337,15 +337,16 @@ func buildNotificationsTemplateGroupRequest(ctx context.Context, m notifications
 func commSettingsFromModel(ctx context.Context, m notificationsTemplateGroupModel) (map[string]cidaas.NotificationsSrvCommSetting, diag.Diagnostics) {
 	var diags diag.Diagnostics
 	out := make(map[string]cidaas.NotificationsSrvCommSetting)
+	// Map keys must match notification-srv JSON (lowercase channel names); values still set communicationMethod per API.
 	channels := []struct {
-		key    string
+		mapKey string
 		obj    types.Object
 		method string
 	}{
-		{"EMAIL", m.CommSettingEmail, "EMAIL"},
-		{"SMS", m.CommSettingSMS, "SMS"},
-		{"IVR", m.CommSettingIVR, "IVR"},
-		{"PUSH", m.CommSettingPush, "PUSH"},
+		{"email", m.CommSettingEmail, "EMAIL"},
+		{"sms", m.CommSettingSMS, "SMS"},
+		{"ivr", m.CommSettingIVR, "IVR"},
+		{"push", m.CommSettingPush, "PUSH"},
 	}
 	anySet := false
 	for _, ch := range channels {
@@ -366,7 +367,7 @@ func commSettingsFromModel(ctx context.Context, m notificationsTemplateGroupMode
 			v := cm.HasRemoteTemplates.ValueBool()
 			cs.HasRemoteTemplates = &v
 		}
-		out[ch.key] = cs
+		out[ch.mapKey] = cs
 	}
 	if anySet {
 		for k, v := range out {

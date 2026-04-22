@@ -2,14 +2,14 @@
 page_title: "cidaas_app Resource - cidaas"
 subcategory: ""
 description: |-
-  The App resource allows creation and management of clients in Cidaas system. When creating a client with a custom client_id and client_secret you can include the configuration in the resource. If not provided, Cidaas will generate a set for you. client_secret is sensitive data. Refer to the article Terraform Sensitive Variables https://developer.hashicorp.com/terraform/tutorials/configuration-language/sensitive-variables to properly handle sensitive information.
+  The App resource allows creation and management of clients in cidaas system. When creating a client with a custom client_id and client_secret you can include the configuration in the resource. If not provided, cidaas will generate a set for you. client_secret is sensitive data. Refer to the article Terraform Sensitive Variables https://developer.hashicorp.com/terraform/tutorials/configuration-language/sensitive-variables to properly handle sensitive information.
   Ensure that the below scopes are assigned to the client with the specified client_id:
   cidaas:apps_readcidaas:apps_writecidaas:apps_delete
 ---
 
 # cidaas_app (Resource)
 
-The App resource allows creation and management of clients in Cidaas system. When creating a client with a custom `client_id` and `client_secret` you can include the configuration in the resource. If not provided, Cidaas will generate a set for you. `client_secret` is sensitive data. Refer to the article [Terraform Sensitive Variables](https://developer.hashicorp.com/terraform/tutorials/configuration-language/sensitive-variables) to properly handle sensitive information.
+The App resource allows creation and management of clients in cidaas system. When creating a client with a custom `client_id` and `client_secret` you can include the configuration in the resource. If not provided, cidaas will generate a set for you. `client_secret` is sensitive data. Refer to the article [Terraform Sensitive Variables](https://developer.hashicorp.com/terraform/tutorials/configuration-language/sensitive-variables) to properly handle sensitive information.
 
  Ensure that the below scopes are assigned to the client with the specified `client_id`:
 - cidaas:apps_read
@@ -21,7 +21,7 @@ The module provides a variable with the same name `common_configs` which
 supports all the attributes in the resource app except `client_name`. With this module you can avoid the repeated configuration and assign the common properties
 of multiple apps to a common variable and inherit the properties.
 
-Link to the custom module https://github.com/Cidaas/terraform-cidaas-app
+Link to the custom module https://github.com/cidaas/terraform-cidaas-app
 
 ##### Module usage:
 
@@ -50,7 +50,7 @@ provider "cidaas" {
 }
 
 module "app1" {
-  source = "git@github.com:Cidaas/terraform-cidaas-app.git"
+  source = "git@github.com:cidaas/terraform-cidaas-app.git"
 
   providers = {
     cidaas = cidaas
@@ -60,7 +60,7 @@ module "app1" {
 }
 
 module "app2" {
-  source = "git@github.com:Cidaas/terraform-cidaas-app.git"
+  source = "git@github.com:cidaas/terraform-cidaas-app.git"
   providers = {
     cidaas = cidaas
   }
@@ -366,6 +366,10 @@ Required:
 
 - `filters` (Attributes List) An array of group role filters. (see [below for nested schema](#nestedatt--group_role_restriction--filters))
 - `match_condition` (String) The match condition for the role restriction
+
+Optional:
+
+- `hints` (Set of String) Optional response hints for group verification: groupIds, rolesOfGroup, or allowedGroups.
 
 <a id="nestedatt--group_role_restriction--filters"></a>
 ### Nested Schema for `group_role_restriction.filters`

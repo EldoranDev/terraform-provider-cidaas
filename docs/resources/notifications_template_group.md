@@ -48,7 +48,6 @@ resource "cidaas_notifications_template_group" "example_dev" {
 - `comm_setting_sms` (Attributes) SMS `commSettings` entry. (see [below for nested schema](#nestedatt--comm_setting_sms))
 - `copy_from_group_id` (String) Source group id for template copy on create/update. If omitted with no locale mappings, the API defaults to `default`.
 - `copy_locale_mappings` (Attributes List) Locale remap pairs `{from, to}` when copying (e.g. add locales). `copy_from_group_id` should be set to the source group (often `default`). (see [below for nested schema](#nestedatt--copy_locale_mappings))
-- `enabled` (Boolean) Whether the template group is enabled.
 - `owner` (String) Object owner, e.g. `client`.
 - `user_group_ids` (Set of String) Optional user group ids restricting access.
 

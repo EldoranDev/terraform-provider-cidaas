@@ -4,3 +4,5 @@ coverage.html
 internal.md
 samples
 terraform-provider-cidaas
+terraform-provider-cidaas_*
+darwin_arm64/

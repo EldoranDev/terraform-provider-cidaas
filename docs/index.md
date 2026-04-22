@@ -6,7 +6,7 @@ description: |-
 ![Logo](https://raw.githubusercontent.com/Cidaas/terraform-provider-cidaas/master/logo.jpg)
 
 # CIDAAS Provider
-The Terraform provider for Cidaas enables interaction with Cidaas instances that allows to perform CRUD operations on applications, custom providers, registration fields and many other functionalities.
+The Terraform provider for cidaas enables interaction with cidaas instances that allows to perform CRUD operations on applications, custom providers, registration fields and many other functionalities.
 
 From managing applications to configuring custom providers, the Terraform provider enhances the user's capacity to define, provision and manipulate their Cidaas resources.
 
