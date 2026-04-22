@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
@@ -96,7 +95,7 @@ var notificationsTemplateGroupSchema = schema.Schema{
 			},
 		},
 		"description": schema.StringAttribute{
-			Required: true,
+			Required:            true,
 			MarkdownDescription: "Description (10–600 characters per notification-srv validation).",
 			Validators: []validator.String{
 				stringvalidator.LengthBetween(10, 600),
@@ -107,16 +106,10 @@ var notificationsTemplateGroupSchema = schema.Schema{
 			MarkdownDescription: "Default locale (BCP47), e.g. `en`, `de`.",
 		},
 		"owner": schema.StringAttribute{
-			Optional: true,
-			Computed: true,
-			Default:  stringdefault.StaticString("client"),
-			MarkdownDescription: "Object owner, e.g. `client`.",
-		},
-		"enabled": schema.BoolAttribute{
 			Optional:            true,
 			Computed:            true,
-			Default:             booldefault.StaticBool(true),
-			MarkdownDescription: "Whether the template group is enabled.",
+			Default:             stringdefault.StaticString("client"),
+			MarkdownDescription: "Object owner, e.g. `client`.",
 		},
 		"user_group_ids": schema.SetAttribute{
 			ElementType:         types.StringType,
@@ -168,7 +161,6 @@ type notificationsTemplateGroupModel struct {
 	Description        types.String `tfsdk:"description"`
 	DefaultLocale      types.String `tfsdk:"default_locale"`
 	Owner              types.String `tfsdk:"owner"`
-	Enabled            types.Bool   `tfsdk:"enabled"`
 	UserGroupIDs       types.Set    `tfsdk:"user_group_ids"`
 	CopyFromGroupID    types.String `tfsdk:"copy_from_group_id"`
 	CopyLocaleMappings types.List   `tfsdk:"copy_locale_mappings"`
@@ -295,10 +287,6 @@ func buildNotificationsTemplateGroupRequest(ctx context.Context, m notifications
 		Owner:         m.Owner.ValueString(),
 		DefaultLocale: m.DefaultLocale.ValueString(),
 	}
-	if !m.Enabled.IsNull() {
-		v := m.Enabled.ValueBool()
-		req.Enabled = &v
-	}
 	if !m.UserGroupIDs.IsNull() && !m.UserGroupIDs.IsUnknown() {
 		diags.Append(m.UserGroupIDs.ElementsAs(ctx, &req.UserGroupIDs, false)...)
 	}
@@ -337,15 +325,16 @@ func buildNotificationsTemplateGroupRequest(ctx context.Context, m notifications
 func commSettingsFromModel(ctx context.Context, m notificationsTemplateGroupModel) (map[string]cidaas.NotificationsSrvCommSetting, diag.Diagnostics) {
 	var diags diag.Diagnostics
 	out := make(map[string]cidaas.NotificationsSrvCommSetting)
+	// Map keys must match notification-srv JSON (lowercase channel names); values still set communicationMethod per API.
 	channels := []struct {
-		key    string
+		mapKey string
 		obj    types.Object
 		method string
 	}{
-		{"EMAIL", m.CommSettingEmail, "EMAIL"},
-		{"SMS", m.CommSettingSMS, "SMS"},
-		{"IVR", m.CommSettingIVR, "IVR"},
-		{"PUSH", m.CommSettingPush, "PUSH"},
+		{"email", m.CommSettingEmail, "EMAIL"},
+		{"sms", m.CommSettingSMS, "SMS"},
+		{"ivr", m.CommSettingIVR, "IVR"},
+		{"push", m.CommSettingPush, "PUSH"},
 	}
 	anySet := false
 	for _, ch := range channels {
@@ -366,7 +355,7 @@ func commSettingsFromModel(ctx context.Context, m notificationsTemplateGroupMode
 			v := cm.HasRemoteTemplates.ValueBool()
 			cs.HasRemoteTemplates = &v
 		}
-		out[ch.key] = cs
+		out[ch.mapKey] = cs
 	}
 	if anySet {
 		for k, v := range out {
@@ -389,11 +378,6 @@ func notificationsDataToModel(data *cidaas.NotificationsSrvTemplateGroupData, cf
 		Description:   util.StringValueOrNull(&data.Description),
 		DefaultLocale: util.StringValueOrNull(&data.DefaultLocale),
 		Owner:         util.StringValueOrNull(&data.Owner),
-	}
-	if data.Enabled != nil {
-		m.Enabled = types.BoolValue(*data.Enabled)
-	} else {
-		m.Enabled = types.BoolNull()
 	}
 	if len(data.UserGroupIDs) > 0 {
 		m.UserGroupIDs = util.SetValueOrNull(data.UserGroupIDs)

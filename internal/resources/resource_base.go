@@ -19,6 +19,7 @@ const (
 	RESOURCE_GROUP_TYPE                   = "cidaas_group_type"                   // nolint:stylecheck
 	RESOURCE_HOSTED_PAGE                  = "cidaas_hosted_page"                  // nolint:stylecheck
 	RESOURCE_PASSWORD_POLICY              = "cidaas_password_policy"              // nolint:stylecheck
+	RESOURCE_SECURITY_SETTINGS            = "cidaas_security_settings"            // nolint:stylecheck
 	RESOURCE_REGISTRATION_FIELD           = "cidaas_registration_field"           // nolint:stylecheck
 	RESOURCE_ROLE                         = "cidaas_role"                         // nolint:stylecheck
 	RESOURCE_SCOPE_GROUP                  = "cidaas_scope_group"                  // nolint:stylecheck

@@ -367,6 +367,10 @@ Required:
 - `filters` (Attributes List) An array of group role filters. (see [below for nested schema](#nestedatt--group_role_restriction--filters))
 - `match_condition` (String) The match condition for the role restriction
 
+Optional:
+
+- `hints` (Set of String) Optional response hints for group verification: groupIds, rolesOfGroup, or allowedGroups.
+
 <a id="nestedatt--group_role_restriction--filters"></a>
 ### Nested Schema for `group_role_restriction.filters`
 

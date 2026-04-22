@@ -1,5 +1,14 @@
 ## Changelog
 
+### 3.5.9
+
+#### Enhancements
+
+- **cidaas_security_settings:** New resource for tenant fraud-detection settings via `fraud-detection-srv/settings` (HTTP **PATCH** for create/update, **GET** for read). It supports **`blocking_setting`**, **`repeated_login_blocking_mechanism`**, and **`rule_configuration`** with **`repeated_login_blocking_mechanism_enabled`** only. **Destroy** removes the resource from Terraform state only and does not reset remote settings. Other API fields under `ruleConfiguration`, `cspBotDetection`, and `repeatedFailedLoginAttempts` are not exposed on this resource.
+- **OAuth scopes:** Managing this resource requires **`cidaas:fds_settings_read`** and **`cidaas:fds_settings_write`** on the Terraform client.
+- **State merge:** After read/apply, state is merged with configuration so partial `.tf` matches apply/read (avoids “inconsistent result after apply” when the API returns more fields than configured). **PATCH** response handling and list **null** vs empty-set behavior are aligned with the API.
+- **HTTP client:** **PATCH** responses with status **200** or **204** are treated as success.
+
 ### 3.5.8
 
 #### Enhancements

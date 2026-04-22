@@ -296,19 +296,19 @@ func notificationTemplateToAPI(ctx context.Context, m notificationTemplateModel)
 		Content:             m.Content.ValueString(),
 		Enabled:             m.Enabled.ValueBool(),
 	}
-	if !m.Owner.IsNull() {
+	if !m.Owner.IsNull() && !m.Owner.IsUnknown() {
 		out.Owner = m.Owner.ValueString()
 	}
-	if !m.Subject.IsNull() {
+	if !m.Subject.IsNull() && !m.Subject.IsUnknown() {
 		out.Subject = m.Subject.ValueString()
 	}
-	if !m.ProcessingType.IsNull() {
+	if !m.ProcessingType.IsNull() && !m.ProcessingType.IsUnknown() {
 		out.ProcessingType = m.ProcessingType.ValueString()
 	}
-	if !m.UsageType.IsNull() {
+	if !m.UsageType.IsNull() && !m.UsageType.IsUnknown() {
 		out.UsageType = m.UsageType.ValueString()
 	}
-	if !m.VerificationType.IsNull() {
+	if !m.VerificationType.IsNull() && !m.VerificationType.IsUnknown() {
 		out.VerificationType = m.VerificationType.ValueString()
 	}
 	if !m.Number.IsNull() {
