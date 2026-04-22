@@ -3,14 +3,14 @@
 page_title: "cidaas_role Resource - cidaas"
 subcategory: ""
 description: |-
-  The cidaas_role resource in Terraform facilitates the management of roles in cidaas system. This resource allows you to configure and define custom roles to suit your application's specific access control requirements.
+  The cidaas_role resource in Terraform facilitates the management of roles in Cidaas system. This resource allows you to configure and define custom roles to suit your application's specific access control requirements.
   Ensure that the below scopes are assigned to the client with the specified client_id:
   cidaas:roles_readcidaas:roles_writecidaas:roles_delete
 ---
 
 # cidaas_role (Resource)
 
-The cidaas_role resource in Terraform facilitates the management of roles in cidaas system. This resource allows you to configure and define custom roles to suit your application's specific access control requirements.
+The cidaas_role resource in Terraform facilitates the management of roles in Cidaas system. This resource allows you to configure and define custom roles to suit your application's specific access control requirements.
 
  Ensure that the below scopes are assigned to the client with the specified `client_id`:
 - cidaas:roles_read

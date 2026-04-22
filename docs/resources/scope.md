@@ -2,14 +2,14 @@
 page_title: "cidaas_scope Resource - cidaas"
 subcategory: ""
 description: |-
-  The Scope resource allows to manage scopes in cidaas system. Scopes define the level of access and permissions granted to an application (client).
+  The Scope resource allows to manage scopes in Cidaas system. Scopes define the level of access and permissions granted to an application (client).
   Ensure that the below scopes are assigned to the client with the specified client_id:
   cidaas:scopes_readcidaas:scopes_writecidaas:scopes_delete
 ---
 
 # cidaas_scope (Resource)
 
-The Scope resource allows to manage scopes in cidaas system. Scopes define the level of access and permissions granted to an application (client).
+The Scope resource allows to manage scopes in Cidaas system. Scopes define the level of access and permissions granted to an application (client).
 
  Ensure that the below scopes are assigned to the client with the specified `client_id`:
 - cidaas:scopes_read
@@ -27,17 +27,17 @@ resource "cidaas_scope" "sample" {
   group_name            = []
   localized_descriptions = [
     {
-      title       = "cidaas Scope Tunisia Title"
+      title       = "Cidaas Scope Tunisia Title"
       locale      = "ar-TN"
       description = "This is scope in local ar-TN"
     },
     {
-      title       = "cidaas Scope German Title"
+      title       = "Cidaas Scope German Title"
       locale      = "de-DE"
       description = "This is scope in local de-DE"
     },
     {
-      title       = "cidaas Scope India Title"
+      title       = "Cidaas Scope India Title"
       locale      = "en-IN"
       description = "This is scope in local en-IN"
     }

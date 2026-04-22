@@ -3,14 +3,14 @@
 page_title: "cidaas_hosted_page Resource - cidaas"
 subcategory: ""
 description: |-
-  The Hosted Page resource in the provider allows you to define and manage hosted pages within the cidaas system.
+  The Hosted Page resource in the provider allows you to define and manage hosted pages within the Cidaas system.
   Ensure that the below scopes are assigned to the client with the specified client_id:
   cidaas:hosted_pages_writecidaas:hosted_pages_readcidaas:hosted_pages_delete
 ---
 
 # cidaas_hosted_page (Resource)
 
-The Hosted Page resource in the provider allows you to define and manage hosted pages within the cidaas system.
+The Hosted Page resource in the provider allows you to define and manage hosted pages within the Cidaas system.
 
  Ensure that the below scopes are assigned to the client with the specified `client_id`:
 - cidaas:hosted_pages_write

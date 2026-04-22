@@ -2,7 +2,7 @@
 page_title: "cidaas_social_provider Resource - cidaas"
 subcategory: ""
 description: |-
-  The cidaas_social_provider resource allows you to configure and manage social login providers within cidaas.
+  The cidaas_social_provider resource allows you to configure and manage social login providers within Cidaas.
   Social login providers enable users to authenticate using their existing accounts from popular social platforms such as Google, Facebook, LinkedIn and others.
   Ensure that the below scopes are assigned to the client:
   cidaas:providers_readcidaas:providers_writecidaas:providers_delete
@@ -10,7 +10,7 @@ description: |-
 
 # cidaas_social_provider (Resource)
 
-The `cidaas_social_provider` resource allows you to configure and manage social login providers within cidaas.
+The `cidaas_social_provider` resource allows you to configure and manage social login providers within Cidaas.
  Social login providers enable users to authenticate using their existing accounts from popular social platforms such as Google, Facebook, LinkedIn and others.
 
  Ensure that the below scopes are assigned to the client:

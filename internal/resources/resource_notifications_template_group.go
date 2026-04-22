@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
@@ -111,6 +112,12 @@ var notificationsTemplateGroupSchema = schema.Schema{
 			Default:             stringdefault.StaticString("client"),
 			MarkdownDescription: "Object owner, e.g. `client`.",
 		},
+		"enabled": schema.BoolAttribute{
+			Optional:            true,
+			Computed:            true,
+			Default:             booldefault.StaticBool(true),
+			MarkdownDescription: "Whether the template group is enabled.",
+		},
 		"user_group_ids": schema.SetAttribute{
 			ElementType:         types.StringType,
 			Optional:            true,
@@ -161,6 +168,7 @@ type notificationsTemplateGroupModel struct {
 	Description        types.String `tfsdk:"description"`
 	DefaultLocale      types.String `tfsdk:"default_locale"`
 	Owner              types.String `tfsdk:"owner"`
+	Enabled            types.Bool   `tfsdk:"enabled"`
 	UserGroupIDs       types.Set    `tfsdk:"user_group_ids"`
 	CopyFromGroupID    types.String `tfsdk:"copy_from_group_id"`
 	CopyLocaleMappings types.List   `tfsdk:"copy_locale_mappings"`
@@ -287,6 +295,10 @@ func buildNotificationsTemplateGroupRequest(ctx context.Context, m notifications
 		Owner:         m.Owner.ValueString(),
 		DefaultLocale: m.DefaultLocale.ValueString(),
 	}
+	if !m.Enabled.IsNull() {
+		v := m.Enabled.ValueBool()
+		req.Enabled = &v
+	}
 	if !m.UserGroupIDs.IsNull() && !m.UserGroupIDs.IsUnknown() {
 		diags.Append(m.UserGroupIDs.ElementsAs(ctx, &req.UserGroupIDs, false)...)
 	}
@@ -378,6 +390,11 @@ func notificationsDataToModel(data *cidaas.NotificationsSrvTemplateGroupData, cf
 		Description:   util.StringValueOrNull(&data.Description),
 		DefaultLocale: util.StringValueOrNull(&data.DefaultLocale),
 		Owner:         util.StringValueOrNull(&data.Owner),
+	}
+	if data.Enabled != nil {
+		m.Enabled = types.BoolValue(*data.Enabled)
+	} else {
+		m.Enabled = types.BoolNull()
 	}
 	if len(data.UserGroupIDs) > 0 {
 		m.UserGroupIDs = util.SetValueOrNull(data.UserGroupIDs)
