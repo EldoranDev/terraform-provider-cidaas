@@ -30,6 +30,7 @@ type Client struct {
 	Templates                     *Template
 	TemplateType                  *TemplateTypeServiceImpl
 	PasswordPolicy                *PasswordPolicy
+	SecuritySettings              *SecuritySettings
 	Consent                       *Consent
 	ConsentVersion                *ConsentVersion
 }
@@ -107,6 +108,7 @@ func NewClient(ctx context.Context, config ClientConfig) (*Client, error) {
 		TemplateType:                  NewTemplateType(config),
 		SocialProvider:                NewSocialProvider(config),
 		PasswordPolicy:                NewPasswordPolicy(config),
+		SecuritySettings:              NewSecuritySettings(config),
 		ConsentGroup:                  NewConsentGroup(config),
 		Consent:                       NewConsent(config),
 		ConsentVersion:                NewConsentVersion(config),

@@ -2,14 +2,14 @@
 page_title: "cidaas_custom_provider Resource - cidaas"
 subcategory: ""
 description: |-
-  This example demonstrates the configuration of a custom provider resource for interacting with Cidaas.
+  This example demonstrates the configuration of a custom provider resource for interacting with cidaas.
   Ensure that the below scopes are assigned to the client with the specified client_id:
   cidaas:providers_readcidaas:providers_writecidaas:providers_delete
 ---
 
 # cidaas_custom_provider (Resource)
 
-This example demonstrates the configuration of a custom provider resource for interacting with Cidaas.
+This example demonstrates the configuration of a custom provider resource for interacting with cidaas.
 
  Ensure that the below scopes are assigned to the client with the specified `client_id`:
 - cidaas:providers_read
@@ -91,7 +91,7 @@ resource "cidaas_custom_provider" "sample" {
 - `amr_config` (Attributes List) AMR configuration mapping. (see [below for nested schema](#nestedatt--amr_config))
 - `apikey_details` (Attributes) Configuration for API key-based authentication. It's a **required** parameter when the auth_type is APIKEY. (see [below for nested schema](#nestedatt--apikey_details))
 - `auth_type` (String) Type of authentication. Allowed values `APIKEY`, `CIDAAS_OAUTH2` and `TOTP`.
-- `cidaas_auth_details` (Attributes) Configuration for Cidaas authentication. It's a **required** parameter when the auth_type is CIDAAS_OAUTH2. (see [below for nested schema](#nestedatt--cidaas_auth_details))
+- `cidaas_auth_details` (Attributes) Configuration for cidaas authentication. It's a **required** parameter when the auth_type is CIDAAS_OAUTH2. (see [below for nested schema](#nestedatt--cidaas_auth_details))
 - `domains` (Set of String) The domains of the provider.
 - `logo_url` (String) The URL for the provider's logo.
 - `pkce` (Boolean) The flag to enable or disable pkce flow. By default, the value is set to `false`
@@ -130,7 +130,7 @@ Required:
 
 Required:
 
-- `client_id` (String) The client ID for Cidaas authentication.
+- `client_id` (String) The client ID for cidaas authentication.
 
 
 <a id="nestedatt--scopes"></a>

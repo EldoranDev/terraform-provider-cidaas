@@ -61,7 +61,7 @@ resource "cidaas_webhook" "sample_webhook" {
 ### Optional
 
 - `apikey_config` (Attributes) Configuration for API key-based authentication. It's a **required** parameter when the auth_type is APIKEY. (see [below for nested schema](#nestedatt--apikey_config))
-- `cidaas_auth_config` (Attributes) Configuration for Cidaas authentication. It's a **required** parameter when the auth_type is CIDAAS_OAUTH2. (see [below for nested schema](#nestedatt--cidaas_auth_config))
+- `cidaas_auth_config` (Attributes) Configuration for cidaas authentication. It's a **required** parameter when the auth_type is CIDAAS_OAUTH2. (see [below for nested schema](#nestedatt--cidaas_auth_config))
 - `disable` (Boolean) Flag to disable the webhook.
 - `totp_config` (Attributes) Configuration for TOTP based authentication.  It's a **required** parameter when the auth_type is TOTP. (see [below for nested schema](#nestedatt--totp_config))
 
@@ -86,7 +86,7 @@ Required:
 
 Required:
 
-- `client_id` (String) The client ID for Cidaas authentication.
+- `client_id` (String) The client ID for cidaas authentication.
 
 
 <a id="nestedatt--totp_config"></a>

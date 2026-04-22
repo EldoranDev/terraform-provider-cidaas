@@ -138,7 +138,7 @@ This section provides examples and guidelines for implementing new resources and
 
 ### Resource Implementation Example
 
-Here's a basic example of implementing a Cidaas role resource:
+Here's a basic example of implementing a cidaas role resource:
 
 #### 1. Resource Structure
 
@@ -187,7 +187,7 @@ type Role struct {
 
 ```go
 var roleSchema = schema.Schema{
-	MarkdownDescription: "The cidaas_role resource in Terraform facilitates the management of roles in Cidaas system." +
+	MarkdownDescription: "The cidaas_role resource in Terraform facilitates the management of roles in cidaas system." +
 		" This resource allows you to configure and define custom roles to suit your application's specific access control requirements." +
 		"\n\n Ensure that the below scopes are assigned to the client with the specified `client_id`:" +
 		"\n- cidaas:roles_read" +
@@ -298,7 +298,7 @@ func (r *RoleResource) ImportState(ctx context.Context, req resource.ImportState
 
 ### Data Source Implementation Example
 
-Here's a basic example of implementing a Cidaas role data source:
+Here's a basic example of implementing a cidaas role data source:
 
 ```go
 package datasources
@@ -347,7 +347,7 @@ func NewRole() datasource.DataSource {
 }
 
 var roleDataSourceSchema = schema.Schema{
-	MarkdownDescription: fmt.Sprintf("The data source `%s` returns a list of roles available in your Cidaas instance."+
+	MarkdownDescription: fmt.Sprintf("The data source `%s` returns a list of roles available in your cidaas instance."+
 		"\nYou can apply filters using the `filter` block in your Terraform configuration.", ROLE_DATASOURCE),
 	Attributes: map[string]schema.Attribute{
 		"id": schema.StringAttribute{
@@ -481,7 +481,7 @@ go test ./...
 
 ### Acceptance Tests
 
-**Important**: Acceptance tests create real resources in your Cidaas environment. Ensure you have:
+**Important**: Acceptance tests create real resources in your cidaas environment. Ensure you have:
 - Proper credentials configured
 - A dedicated test environment (never use production)
 - Sufficient permissions to create/modify resources

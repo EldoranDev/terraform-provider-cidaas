@@ -3,7 +3,7 @@ page_title: "cidaas_template Resource - cidaas"
 subcategory: ""
 description: |-
   Deprecated for new designs: this resource uses legacy templates-srv. For notification-srv (/{notifications_context_path}/templates), use cidaas_notification_template instead.
-  The Template resource in the provider is used to define and manage templates within the Cidaas system. Templates are used for emails, SMS, IVR, and push notifications.
+  The Template resource in the provider is used to define and manage templates within the cidaas system. Templates are used for emails, SMS, IVR, and push notifications.
   Ensure that the below scopes are assigned to the client with the specified client_id:
   cidaas:templates_readcidaas:templates_writecidaas:templates_delete
 ---
@@ -12,7 +12,7 @@ description: |-
 
 **Deprecated for new designs:** this resource uses legacy **templates-srv**. For notification-srv (`/{notifications_context_path}/templates`), use **`cidaas_notification_template`** instead.
 
-The Template resource in the provider is used to define and manage templates within the Cidaas system. Templates are used for emails, SMS, IVR, and push notifications.
+The Template resource in the provider is used to define and manage templates within the cidaas system. Templates are used for emails, SMS, IVR, and push notifications.
 
  Ensure that the below scopes are assigned to the client with the specified `client_id`:
 - cidaas:templates_read

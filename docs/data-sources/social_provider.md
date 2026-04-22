@@ -4,7 +4,7 @@ page_title: "cidaas_social_provider Data Source - cidaas"
 
 # cidaas_social_provider (Data Source)
 
-The data source `cidaas_social_provider` returns a list of social providers available in your Cidaas instance.
+The data source `cidaas_social_provider` returns a list of social providers available in your cidaas instance.
 You can apply filters using the `filter` block in your Terraform configuration.
 
 
