@@ -1,4 +1,4 @@
-![Logo](https://raw.githubusercontent.com/Cidaas/terraform-provider-cidaas/master/logo.jpg)
+![Logo](https://raw.githubusercontent.com/cidaas/terraform-provider-cidaas/master/logo.jpg)
 
 ## About cidaas
 
@@ -33,7 +33,7 @@ The Terraform provider for cidaas enables interaction with cidaas instances that
 ## Documentation
 
 Official documentation on how to use this provider can be found on the
-[Terraform Registry](https://registry.terraform.io/providers/Cidaas/cidaas/latest/docs). Detailed explanations of the resources can also be found in the [Supported Resources](#supported-resources) section.
+[Terraform Registry](https://registry.terraform.io/providers/cidaas/cidaas/latest/docs). Detailed explanations of the resources can also be found in the [Supported Resources](#supported-resources) section.
 
 ## Example Usage
 
@@ -48,7 +48,7 @@ terraform {
     required_providers {
       cidaas = {
         version = "3.5.7"
-        source  = "Cidaas/cidaas"
+        source  = "cidaas/cidaas"
       }
     }
 }
@@ -196,7 +196,7 @@ provider "cidaas" {
 }
 
 module "app1" {
-  source = "git@github.com:Cidaas/terraform-cidaas-app.git"
+  source = "git@github.com:cidaas/terraform-cidaas-app.git"
 
   providers = {
     cidaas = cidaas
@@ -206,7 +206,7 @@ module "app1" {
 }
 
 module "app2" {
-  source = "git@github.com:Cidaas/terraform-cidaas-app.git"
+  source = "git@github.com:cidaas/terraform-cidaas-app.git"
   providers = {
     cidaas = cidaas
   }

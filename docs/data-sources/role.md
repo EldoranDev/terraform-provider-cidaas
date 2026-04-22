@@ -4,7 +4,7 @@ page_title: "cidaas_role Data Source - cidaas"
 
 # cidaas_role (Data Source)
 
-The data source `cidaas_role` returns a list of roles available in your Cidaas instance.
+The data source `cidaas_role` returns a list of roles available in your cidaas instance.
 You can apply filters using the `filter` block in your Terraform configuration.
 
 

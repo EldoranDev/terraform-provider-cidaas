@@ -4,7 +4,7 @@ page_title: "cidaas_scope_group Data Source - cidaas"
 
 # cidaas_scope_group (Data Source)
 
-The data source `cidaas_scope_group` returns a list of scope groups available in your Cidaas instance.
+The data source `cidaas_scope_group` returns a list of scope groups available in your cidaas instance.
 You can apply filters using the `filter` block in your Terraform configuration.
 
 

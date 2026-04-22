@@ -1,4 +1,4 @@
-## Release 3.5.7 – Terraform Provider Cidaas
+## Release 3.5.7 – Terraform Provider cidaas
 
 ### Summary
 

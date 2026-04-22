@@ -3,14 +3,14 @@
 page_title: "cidaas_scope_group Resource - cidaas"
 subcategory: ""
 description: |-
-  The cidaas_scope_group resource in the provider allows to manage Scope Groups in Cidaas system. Scope Groups help organize and group related scopes for better categorization and access control.
+  The cidaas_scope_group resource in the provider allows to manage Scope Groups in cidaas system. Scope Groups help organize and group related scopes for better categorization and access control.
   Ensure that the below scopes are assigned to the client with the specified client_id:
   cidaas:scopes_readcidaas:scopes_writecidaas:scopes_delete
 ---
 
 # cidaas_scope_group (Resource)
 
-The cidaas_scope_group resource in the provider allows to manage Scope Groups in Cidaas system. Scope Groups help organize and group related scopes for better categorization and access control.
+The cidaas_scope_group resource in the provider allows to manage Scope Groups in cidaas system. Scope Groups help organize and group related scopes for better categorization and access control.
 
  Ensure that the below scopes are assigned to the client with the specified `client_id`:
 - cidaas:scopes_read

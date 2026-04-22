@@ -4,7 +4,7 @@ page_title: "cidaas_custom_provider Data Source - cidaas"
 
 # cidaas_custom_provider (Data Source)
 
-The data source `cidaas_custom_provider` returns a list of custom providers available in your Cidaas instance.
+The data source `cidaas_custom_provider` returns a list of custom providers available in your cidaas instance.
 You can apply filters using the `filter` block in your Terraform configuration.
 
 

@@ -17,7 +17,7 @@
 
 #### Bug Fixes
 
-- **Scope client:** `Get` and `Delete` no longer normalize scope keys to lowercase; the query parameter and path segment match the scope key passed in, so mixed- or upper-case canonical keys from Cidaas are addressed correctly (see framework issue #1856).
+- **Scope client:** `Get` and `Delete` no longer normalize scope keys to lowercase; the query parameter and path segment match the scope key passed in, so mixed- or upper-case canonical keys from cidaas are addressed correctly (see framework issue #1856).
 
 ### 3.5.7
 
@@ -49,21 +49,21 @@
 #### Bug Fixes
 
 - **Registration field:** Removed the `is_group` attribute from the registration field data source and resource; it is no longer part of the fieldsetup/API contract.
-- **Registration field / LocaleText:** The `Language` field has been removed from `LocaleText` and is no longer sent in registration field API payloads or set in the provider, aligning with the current Cidaas backend.
+- **Registration field / LocaleText:** The `Language` field has been removed from `LocaleText` and is no longer sent in registration field API payloads or set in the provider, aligning with the current cidaas backend.
 - **Tests:** Updated test cases for registration fields and hosted page to match current API and schema behavior.
 
 ### 3.5.5
 
 #### Enhancements
 
-- **Registration field data source:** The list endpoint for registration fields now uses `fieldsetup-srv/graph/fields` instead of `registration-setup-srv/fields/list`, aligning with the current Cidaas API.
-- **Notification template type:** The Cidaas client now exposes the template type service, enabling the `cidaas_notification_template_type` resource to manage template types via the provider.
+- **Registration field data source:** The list endpoint for registration fields now uses `fieldsetup-srv/graph/fields` instead of `registration-setup-srv/fields/list`, aligning with the current cidaas API.
+- **Notification template type:** The cidaas client now exposes the template type service, enabling the `cidaas_notification_template_type` resource to manage template types via the provider.
 - **Documentation:** Migration guide for classic `cidaas_template` / `cidaas_template_group` vs `cidaas_notification_template_type`: `docs/guides/migration-template-to-notification-template-type.md`.
 
 #### Bug Fixes
 
 - **Template type helper:** Corrected handling of `NewHTTPClient` return values (client and error) and updated all `MakeRequest` calls to pass `context.Context` as the first argument.
-- **Hosted page:** Removed the `content` attribute from the `cidaas_hosted_page` resource and from the hosted page API payload. This attribute is no longer supported by the Cidaas backend; existing configurations that set `content` should remove it to avoid schema errors.
+- **Hosted page:** Removed the `content` attribute from the `cidaas_hosted_page` resource and from the hosted page API payload. This attribute is no longer supported by the cidaas backend; existing configurations that set `content` should remove it to avoid schema errors.
 
 #### Upgrade notes (3.5.4 → 3.5.5)
 
@@ -158,7 +158,7 @@ This ensures a more predictable and transparent configuration experience, aligni
 ### 3.4.3
 
 #### Enhancements
-- The `regex` field has been introduced in `field_definition` for the `cidaas_registration_field` resource (starting from Cidaas version 3.101.5).
+- The `regex` field has been introduced in `field_definition` for the `cidaas_registration_field` resource (starting from cidaas version 3.101.5).
 - This change **replaces** the `max_length` and `min_length` attributes **for `TEXT` and `URL` data types**.
 - Instead of relying on fixed length constraints, validation for these field types will now be handled using **regular expressions (`regex`)**, providing more flexibility.
 
@@ -176,7 +176,7 @@ field_definition = {
 
 #### Bugfix
 
-- The`cidaas_password_policy` resource has been updated to support the enhanced password policy introduced in Cidaas version 3.100.x
+- The`cidaas_password_policy` resource has been updated to support the enhanced password policy introduced in cidaas version 3.100.x
 
 ### 3.4.1
 
@@ -252,7 +252,7 @@ The provider now includes additional locales `de-BE`, `id`, `zh-Hans` and `zh-Ha
 
 #### Removed common_configs from resource app
 
-The attribute `common_configs` is removed from the resource cidaas_app as we introduce [terraform-cidaas-app](https://github.com/Cidaas/terraform-cidaas-app) module.
+The attribute `common_configs` is removed from the resource cidaas_app as we introduce [terraform-cidaas-app](https://github.com/cidaas/terraform-cidaas-app) module.
 
 ### 3.2.0
 
@@ -321,13 +321,13 @@ Please find the readme [here](https://github.com/Cidaas/terraform-provider-cidaa
 #### Bug Fix
 
 - **custom provider schema fix:** The issue with the sub attribute not aligning with the schema of the custom provider has been resolved.
-- **app schema fix**: The app resource's list nested attributes are now updated to align with the Cidaas API response.
+- **app schema fix**: The app resource's list nested attributes are now updated to align with the cidaas API response.
 
 ### 3.0.3
 
 #### Enhancements
 
-- **Enhanced State Management:** Fixed state inconsistencies for attributes computed by Cidaas APIs due to dependencies or API support changes.
+- **Enhanced State Management:** Fixed state inconsistencies for attributes computed by cidaas APIs due to dependencies or API support changes.
 
 ### 3.0.2
 
@@ -337,7 +337,7 @@ Please find the readme [here](https://github.com/Cidaas/terraform-provider-cidaa
 
 #### Fixes
 
-- **Validation Removed:** Removed the validation that checked the availability of template group by `group_id` in Cidaas before creating a template as the api sometimes may fail to fetch the template group immediately after its creation.
+- **Validation Removed:** Removed the validation that checked the availability of template group by `group_id` in cidaas before creating a template as the api sometimes may fail to fetch the template group immediately after its creation.
 
 ### 3.0.1
 
@@ -364,7 +364,7 @@ Despite these improvements, some breaking changes are present. Users need to be 
 - A new resource `cidaas_template_group` has been added to support template groups,which are required for creating system templates.
 - **SYSTEM** templates can now be created using the provider. Refer to the template section in the documentation for more details.
 - Added support for internationalization in `cidaas_registration_field` and `cidaas_scope` with multi-language capabilities.
-- `cidaas_registration_field` now supports all the datatypes that Cidaas supports.
+- `cidaas_registration_field` now supports all the datatypes that cidaas supports.
 
 ### 2.5.8
 

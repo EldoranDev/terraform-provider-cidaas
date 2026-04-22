@@ -3,7 +3,7 @@
 page_title: "cidaas_consent_group Resource - cidaas"
 subcategory: ""
 description: |-
-  The Consent Group resource in the provider allows you to define and manage consent groups in Cidaas.
+  The Consent Group resource in the provider allows you to define and manage consent groups in cidaas.
   Consent Groups are useful to organize and manage consents by grouping related consent items together.
   Ensure that the below scopes are assigned to the client with the specified client_id:
   cidaas:tenant_consent_readcidaas:tenant_consent_writecidaas:tenant_consent_delete
@@ -11,7 +11,7 @@ description: |-
 
 # cidaas_consent_group (Resource)
 
-The Consent Group resource in the provider allows you to define and manage consent groups in Cidaas.
+The Consent Group resource in the provider allows you to define and manage consent groups in cidaas.
  Consent Groups are useful to organize and manage consents by grouping related consent items together.
 
  Ensure that the below scopes are assigned to the client with the specified `client_id`:

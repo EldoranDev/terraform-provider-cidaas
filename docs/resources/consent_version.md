@@ -2,7 +2,7 @@
 page_title: "cidaas_consent_version Resource - cidaas"
 subcategory: ""
 description: |-
-  The Consent Version resource in the provider allows you to manage different versions of a specific consent in Cidaas.
+  The Consent Version resource in the provider allows you to manage different versions of a specific consent in cidaas.
   This resource also supports managing consent versions across multiple locales enabling different configurations such as URLs and content for each locale.
   Ensure that the below scopes are assigned to the client with the specified client_id:
   cidaas:tenant_consent_readcidaas:tenant_consent_writecidaas:tenant_consent_delete
@@ -10,7 +10,7 @@ description: |-
 
 # cidaas_consent_version (Resource)
 
-The Consent Version resource in the provider allows you to manage different versions of a specific consent in Cidaas.
+The Consent Version resource in the provider allows you to manage different versions of a specific consent in cidaas.
  This resource also supports managing consent versions across multiple locales enabling different configurations such as URLs and content for each locale.
 
  Ensure that the below scopes are assigned to the client with the specified `client_id`:

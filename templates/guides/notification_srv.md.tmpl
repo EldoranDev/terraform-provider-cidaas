@@ -1,12 +1,12 @@
 ---
 page_title: "Notification service (notification-srv)"
 description: |-
-  How to use the Cidaas Terraform provider with notification-srv: template groups, template types, templates, graph datasources, limitations, and legacy templates-srv.
+  How to use the cidaas Terraform provider with notification-srv: template groups, template types, templates, graph datasources, limitations, and legacy templates-srv.
 ---
 
 # Notification service (notification-srv)
 
-This guide describes **notification-srv** resources and datasources in the Cidaas Terraform provider, how they differ from **legacy templates-srv**, and how to complete common workflows.
+This guide describes **notification-srv** resources and datasources in the cidaas Terraform provider, how they differ from **legacy templates-srv**, and how to complete common workflows.
 
 ## Two template stacks
 
@@ -76,4 +76,4 @@ See [examples/datasources/cidaas_notification_templates.tf](https://github.com/C
 - Resources: **`cidaas_notifications_template_group`**, **`cidaas_notification_template_type`**, **`cidaas_notification_template`**
 - Data sources: **`cidaas_notification_templates`**, **`cidaas_notification_template_groups`**, **`cidaas_notification_service_setups`**
 
-Run `go generate ./...` after changing schemas so the [Terraform Registry](https://registry.terraform.io/providers/Cidaas/cidaas/latest/docs) docs stay in sync.
+Run `go generate ./...` after changing schemas so the [Terraform Registry](https://registry.terraform.io/providers/cidaas/cidaas/latest/docs) docs stay in sync.

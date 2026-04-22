@@ -2,7 +2,7 @@
 page_title: "cidaas_social_provider Resource - cidaas"
 subcategory: ""
 description: |-
-  The cidaas_social_provider resource allows you to configure and manage social login providers within Cidaas.
+  The cidaas_social_provider resource allows you to configure and manage social login providers within cidaas.
   Social login providers enable users to authenticate using their existing accounts from popular social platforms such as Google, Facebook, LinkedIn and others.
   Ensure that the below scopes are assigned to the client:
   cidaas:providers_readcidaas:providers_writecidaas:providers_delete
@@ -10,7 +10,7 @@ description: |-
 
 # cidaas_social_provider (Resource)
 
-The `cidaas_social_provider` resource allows you to configure and manage social login providers within Cidaas.
+The `cidaas_social_provider` resource allows you to configure and manage social login providers within cidaas.
  Social login providers enable users to authenticate using their existing accounts from popular social platforms such as Google, Facebook, LinkedIn and others.
 
  Ensure that the below scopes are assigned to the client:
@@ -80,7 +80,7 @@ resource "cidaas_app" "app_sample" {
 
 - `client_id` (String) The client ID provided by the social provider. This is used to authenticate your application with the social provider.
 - `client_secret` (String, Sensitive) The client secret provided by the social provider. This is used alongside the client ID to authenticate your application with the social provider.
-- `name` (String) The name of the social provider configuration. This should be unique within your Cidaas environment.
+- `name` (String) The name of the social provider configuration. This should be unique within your cidaas environment.
 - `provider_name` (String) The name of the social provider. Supported values include `google`, `facebook`, `linkedin` etc.
 
 ### Optional
@@ -89,7 +89,7 @@ resource "cidaas_app" "app_sample" {
 - `enabled` (Boolean) A flag to enable or disable the social provider configuration. Set to `true` to enable and `false` to disable.
 - `enabled_for_admin_portal` (Boolean) A flag to enable or disable the social provider for the admin portal. Set to `true` to enable and `false` to disable.
 - `scopes` (Set of String) A list of scopes of the social provider.
-- `userinfo_fields` (Attributes List) A list of user info fields to be mapped between the social provider and Cidaas. (see [below for nested schema](#nestedatt--userinfo_fields))
+- `userinfo_fields` (Attributes List) A list of user info fields to be mapped between the social provider and cidaas. (see [below for nested schema](#nestedatt--userinfo_fields))
 
 ### Read-Only
 
@@ -128,7 +128,7 @@ Optional:
 Required:
 
 - `external_key` (String) The external key used by the social provider.
-- `inner_key` (String) The internal key used by Cidaas.
+- `inner_key` (String) The internal key used by cidaas.
 - `is_custom_field` (Boolean) A flag indicating whether the field is a custom field.
 - `is_system_field` (Boolean) A flag indicating whether the field is a system field.
 

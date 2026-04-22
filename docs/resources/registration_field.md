@@ -2,14 +2,14 @@
 page_title: "cidaas_registration_field Resource - cidaas"
 subcategory: ""
 description: |-
-  The cidaas_registration_field in the provider allows management of registration fields in the Cidaas system. This resource enables you to configure and customize the fields displayed during user registration.
+  The cidaas_registration_field in the provider allows management of registration fields in the cidaas system. This resource enables you to configure and customize the fields displayed during user registration.
   Ensure that the below scopes are assigned to the client with the specified client_id:
   cidaas:field_setup_readcidaas:field_setup_writecidaas:field_setup_delete
 ---
 
 # cidaas_registration_field (Resource)
 
-The `cidaas_registration_field` in the provider allows management of registration fields in the Cidaas system. This resource enables you to configure and customize the fields displayed during user registration.
+The `cidaas_registration_field` in the provider allows management of registration fields in the cidaas system. This resource enables you to configure and customize the fields displayed during user registration.
 
  Ensure that the below scopes are assigned to the client with the specified `client_id`:
 - cidaas:field_setup_read

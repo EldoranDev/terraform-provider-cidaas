@@ -3,14 +3,14 @@
 page_title: "cidaas_security_settings Resource - cidaas"
 subcategory: ""
 description: |-
-  Tenant-wide fraud-detection settings via fraud-detection-srv/settings. This resource exposes blocking_setting, repeated_login_blocking_mechanism, and rule_configuration.repeated_login_blocking_mechanism_enabled only; other fraud-detection API fields are not configurable here. Updates use HTTP PATCH (partial merge). Destroy only removes the resource from Terraform state; it does not reset settings in Cidaas.
+  Tenant-wide fraud-detection settings via fraud-detection-srv/settings. This resource exposes blocking_setting, repeated_login_blocking_mechanism, and rule_configuration.repeated_login_blocking_mechanism_enabled only; other fraud-detection API fields are not configurable here. Updates use HTTP PATCH (partial merge). Destroy only removes the resource from Terraform state; it does not reset settings in cidaas.
   State only stores attributes you set in Terraform. Remote values for omitted fields are not written to state (so apply matches partial configuration). After terraform import, the first refresh may load a full API snapshot into state until your .tf matches or you use ignore_changes.
   Required OAuth scopes on the Terraform client: cidaas:fds_settings_read, cidaas:fds_settings_write.
 ---
 
 # cidaas_security_settings (Resource)
 
-Tenant-wide fraud-detection settings via `fraud-detection-srv/settings`. This resource exposes **`blocking_setting`**, **`repeated_login_blocking_mechanism`**, and **`rule_configuration.repeated_login_blocking_mechanism_enabled`** only; other fraud-detection API fields are not configurable here. Updates use HTTP PATCH (partial merge). Destroy only removes the resource from Terraform state; it does **not** reset settings in Cidaas.
+Tenant-wide fraud-detection settings via `fraud-detection-srv/settings`. This resource exposes **`blocking_setting`**, **`repeated_login_blocking_mechanism`**, and **`rule_configuration.repeated_login_blocking_mechanism_enabled`** only; other fraud-detection API fields are not configurable here. Updates use HTTP PATCH (partial merge). Destroy only removes the resource from Terraform state; it does **not** reset settings in cidaas.
 
 State only stores attributes you set in Terraform. Remote values for omitted fields are not written to state (so apply matches partial configuration). After `terraform import`, the first refresh may load a full API snapshot into state until your `.tf` matches or you use `ignore_changes`.
 

@@ -2,14 +2,14 @@
 page_title: "cidaas_consent Resource - cidaas"
 subcategory: ""
 description: |-
-  The Consent resource in the provider allows you to manage different consents within a specific consent group in Cidaas.
+  The Consent resource in the provider allows you to manage different consents within a specific consent group in cidaas.
   Ensure that the below scopes are assigned to the client with the specified client_id:
   cidaas:tenant_consent_readcidaas:tenant_consent_writecidaas:tenant_consent_delete
 ---
 
 # cidaas_consent (Resource)
 
-The Consent resource in the provider allows you to manage different consents within a specific consent group in Cidaas.
+The Consent resource in the provider allows you to manage different consents within a specific consent group in cidaas.
 
  Ensure that the below scopes are assigned to the client with the specified `client_id`:
 - cidaas:tenant_consent_read

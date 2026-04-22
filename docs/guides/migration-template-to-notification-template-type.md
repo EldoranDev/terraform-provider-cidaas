@@ -9,7 +9,7 @@ description: |-
 
 This guide explains how the **classic** Terraform resources `cidaas_template` and `cidaas_template_group` relate to `cidaas_notification_template_type` (added in provider **3.5.5**), and how to approach a migration in Terraform.
 
-It does **not** replace Cidaas product or release documentation. Confirm timelines, deprecation, and UI/API behavior with your Cidaas account team or release notes for your tenant version.
+It does **not** replace cidaas product or release documentation. Confirm timelines, deprecation, and UI/API behavior with your cidaas account team or release notes for your tenant version.
 
 ## Concepts: three different layers
 
@@ -23,7 +23,7 @@ So:
 
 - **`cidaas_notification_template_type` is not a renamed `cidaas_template`.**  
   It configures **what** a template family allows (attributes, methods, groups), not the **per-locale body** of an email or SMS.
-- **`cidaas_template` remains the resource for actual template content** in the classic flow, unless your Cidaas rollout has moved that responsibility to another surface (only your product docs can state that).
+- **`cidaas_template` remains the resource for actual template content** in the classic flow, unless your cidaas rollout has moved that responsibility to another surface (only your product docs can state that).
 
 You will often **run classic templates and notification template types in parallel** during a transition: types define the contract; templates still hold content until your project switches fully.
 
@@ -63,7 +63,7 @@ Examples: `examples/resources/cidaas_notification_template_type/resource.tf`.
    - **Custom** types: add `cidaas_notification_template_type` blocks with `category = "custom"` and the desired `communication_methods`, attributes, and `template_group_ids`.
 
 4. **Keep classic templates during transition**  
-   Leave `cidaas_template` (and groups) in place until Cidaas and your runbooks say content is fully handled elsewhere. Remove or shrink them only after validation (plans, sends, regression tests).
+   Leave `cidaas_template` (and groups) in place until cidaas and your runbooks say content is fully handled elsewhere. Remove or shrink them only after validation (plans, sends, regression tests).
 
 5. **Apps**  
    If you use `template_group_id` on `cidaas_app`, keep groups consistent with `template_group_ids` on the template types you rely on.
@@ -77,5 +77,5 @@ Use a provider version that includes `cidaas_notification_template_type` (≥ **
 
 ## Further reading
 
-- Registry: [cidaas_template](https://registry.terraform.io/providers/Cidaas/cidaas/latest/docs/resources/template), [cidaas_template_group](https://registry.terraform.io/providers/Cidaas/cidaas/latest/docs/resources/template_group). The `cidaas_notification_template_type` page appears in the registry after provider docs are published for your release; until then, use the schema in the provider source (`internal/resources/resource_notification_template_type.go`) and the examples below.
+- Registry: [cidaas_template](https://registry.terraform.io/providers/cidaas/cidaas/latest/docs/resources/template), [cidaas_template_group](https://registry.terraform.io/providers/cidaas/cidaas/latest/docs/resources/template_group). The `cidaas_notification_template_type` page appears in the registry after provider docs are published for your release; until then, use the schema in the provider source (`internal/resources/resource_notification_template_type.go`) and the examples below.
 - Examples: [`examples/resources/cidaas_notification_template_type/`](https://github.com/Cidaas/terraform-provider-cidaas/tree/master/examples/resources/cidaas_notification_template_type).

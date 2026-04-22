@@ -2,14 +2,14 @@
 page_title: "cidaas_group_type Resource - cidaas"
 subcategory: ""
 description: |-
-  The Group Type, managed through the cidaas_group_type resource in the provider defines and configures categories for user groups within the Cidaas system.
+  The Group Type, managed through the cidaas_group_type resource in the provider defines and configures categories for user groups within the cidaas system.
   Ensure that the below scopes are assigned to the client with the specified client_id:
   cidaas:group_type_readcidaas:group_type_writecidaas:group_type_delete
 ---
 
 # cidaas_group_type (Resource)-Previously cidaas_user_group_category
 
-The Group Type, managed through the `cidaas_group_type` resource in the provider defines and configures categories for user groups within the Cidaas system.
+The Group Type, managed through the `cidaas_group_type` resource in the provider defines and configures categories for user groups within the cidaas system.
 
  Ensure that the below scopes are assigned to the client with the specified `client_id`:
 - cidaas:group_type_read

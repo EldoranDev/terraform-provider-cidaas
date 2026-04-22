@@ -4,7 +4,7 @@ page_title: "cidaas_group_type Data Source - cidaas"
 
 # cidaas_group_type (Data Source)
 
-The data source `cidaas_group_type` returns a list of group types available in your Cidaas instance.
+The data source `cidaas_group_type` returns a list of group types available in your cidaas instance.
 You can apply filters using the `filter` block in your Terraform configuration.
 
 

@@ -4,7 +4,7 @@ page_title: "cidaas_scope Data Source - cidaas"
 
 # cidaas_scope (Data Source)
 
-The data source `cidaas_scope` returns a list of scopes available in your Cidaas instance.
+The data source `cidaas_scope` returns a list of scopes available in your cidaas instance.
 You can apply filters using the `filter` block in your Terraform configuration.
 
 
