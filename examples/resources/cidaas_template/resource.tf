@@ -1,6 +1,6 @@
 // custom template example
 resource "cidaas_template" "custom-template-1" {
-  locale        = "en-in"
+  locale        = "en-IN"
   template_key  = "TERRAFORM_TEMPLATE"
   template_type = "EMAIL"
   content       = "Indian sample content"
@@ -9,7 +9,7 @@ resource "cidaas_template" "custom-template-1" {
 
 // custom template example with same template_key as custom-template-1 but different template_type and locale
 resource "cidaas_template" "custom-template-2" {
-  locale        = "de-de"
+  locale        = "de-DE"
   template_key  = "TERRAFORM_TEMPLATE"
   template_type = "SMS"
   content       = "Sample SMS template content in German English"
@@ -17,7 +17,7 @@ resource "cidaas_template" "custom-template-2" {
 
 // custom template example with same template_key and template_type as custom-template-2 but different locale
 resource "cidaas_template" "custom-template-3" {
-  locale        = "en-us"
+  locale        = "en-US"
   template_key  = "TERRAFORM_TEMPLATE"
   template_type = "SMS"
   content       = "Sample SMS template content in US English"
@@ -32,7 +32,7 @@ resource "cidaas_template" "custom-template-3" {
 
 // Example of a system template for the template group "sample_group":
 resource "cidaas_template" "system-template-1" {
-  locale             = "en-us"
+  locale             = "en-US"
   template_key       = "VERIFY_USER"
   template_type      = "SMS"
   content            = "Hi {{name}}, here is the {{code}} to verify the user"
@@ -45,7 +45,7 @@ resource "cidaas_template" "system-template-1" {
 
 // Example of a  system template for the system default template_group "default"
 resource "cidaas_template" "system-template-2" {
-  locale             = "en-us"
+  locale             = "en-US"
   template_key       = "NOTIFY_COMMUNICATION_CHANGE"
   template_type      = "SMS"
   content            = "Your mobile number changed in {{account_name}}-account to {{communication_medium_value}}."

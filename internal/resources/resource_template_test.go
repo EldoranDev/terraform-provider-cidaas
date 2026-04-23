@@ -56,7 +56,7 @@ import (
 // 			},
 // 			// locale, template_key and template type can't be modified
 // 			{
-// 				Config:      testTemplateConfig("en-us", strings.ToUpper(acctest.RandString(10)), "IVR", updatedTemplateContent),
+// 				Config:      testTemplateConfig("en-US", strings.ToUpper(acctest.RandString(10)), "IVR", updatedTemplateContent),
 // 				ExpectError: regexp.MustCompile("can't be modified"),
 // 			},
 // 		},
@@ -136,7 +136,7 @@ func checkTemplateDestroyed(resourceName string) resource.TestCheckFunc {
 func TestTemplate_EmailSubjectCheck(t *testing.T) {
 	t.Parallel()
 
-	templateLocale := "de-de"
+	templateLocale := "de-DE"
 	templateContent := acctest.RandString(256)
 
 	resource.Test(t, resource.TestCase{
@@ -156,7 +156,7 @@ func TestTemplate_EmailSubjectCheck(t *testing.T) {
 func TestTemplate_TemplateKeyValidation(t *testing.T) {
 	t.Parallel()
 
-	templateLocale := "de-de"
+	templateLocale := "de-DE"
 	templateType := "SMS"
 	templateContent := acctest.RandString(256)
 
@@ -176,7 +176,7 @@ func TestTemplate_TemplateKeyValidation(t *testing.T) {
 func TestTemplate_TemplateTypeValidation(t *testing.T) {
 	t.Parallel()
 
-	templateLocale := "de-de"
+	templateLocale := "de-DE"
 	templateContent := acctest.RandString(256)
 
 	resource.Test(t, resource.TestCase{
@@ -235,7 +235,7 @@ func TestTemplate_CustomTemplateBasic(t *testing.T) {
 	t.Parallel()
 
 	templateKey := strings.ToUpper(acctest.RandString(12))
-	templateLocale := "en-us"
+	templateLocale := "en-US"
 	initialContent := acctest.RandString(128)
 	updatedContent := acctest.RandString(128)
 	testResourceID := acctest.RandString(10)
@@ -330,7 +330,7 @@ func TestTemplate_SystemTemplateBasic(t *testing.T) {
 					base_url = "%s"
 				}
 				resource "cidaas_template" "%s" {
-					locale             = "en-us"
+					locale             = "en-US"
 					template_key       = "VERIFY_USER"
 					template_type      = "SMS"
 					content            = "Hi {{name}}, here is the {{code}} to verify the user"
@@ -352,7 +352,7 @@ func TestTemplate_SystemTemplateBasic(t *testing.T) {
 					base_url = "%s"
 				}
 				resource "cidaas_template" "%s" {
-					locale             = "en-us"
+					locale             = "en-US"
 					template_key       = "VERIFY_USER"
 					template_type      = "SMS"
 					content            = "Hi {{name}}, here is the {{code}} to verify the user updated"
@@ -374,7 +374,7 @@ func TestTemplate_SystemTemplateBasic(t *testing.T) {
 					base_url = "%s"
 				}
 				resource "cidaas_template" "%s" {
-					locale             = "en-us"
+					locale             = "en-US"
 					template_key       = "VERIFY_USER"
 					template_type      = "SMS"
 					content            = "Hi {{name}}, here is the {{code}} to verify the user"
