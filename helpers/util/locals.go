@@ -165,11 +165,18 @@ var Locales = []LocaleData{
 
 var localeToLanguageMap map[string]string
 
+// AllowedBCP47Locales is the list of known locale tags (BCP47: language subtag
+// lower case, region/script upper when present, e.g. en-US, de-DE, zh-Hant; or
+// a language-only tag like en). Matches LocaleString values in [Locales].
+var AllowedBCP47Locales []string
+
 // init initializes the locale lookup map for efficient language code retrieval.
 // This function runs automatically when the package is imported.
 func init() {
 	localeToLanguageMap = make(map[string]string, len(Locales))
-	for _, locale := range Locales {
+	AllowedBCP47Locales = make([]string, len(Locales))
+	for i, locale := range Locales {
+		AllowedBCP47Locales[i] = locale.LocaleString
 		localeToLanguageMap[locale.LocaleString] = locale.Language
 	}
 }

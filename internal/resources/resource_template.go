@@ -78,16 +78,9 @@ var templateSchema = schema.Schema{
 		},
 		"locale": schema.StringAttribute{
 			Required:            true,
-			MarkdownDescription: "The locale of the template. e.g. `en-us`, `en-uk`. Ensure the locale is set in lowercase. Find the allowed locales in the Allowed Locales section below. It cannot be updated for an existing state.",
+			MarkdownDescription: "The BCP47 locale of the template (e.g. `en-US`, `de-DE`, or a language-only tag like `en`). Use lower case for the language subtag and upper case for the region when present. Must be one of the allowed locale tags; see the Allowed Locales section below. It cannot be updated for an existing state.",
 			Validators: []validator.String{
-				stringvalidator.OneOf(
-					func() []string {
-						validLocals := make([]string, len(util.Locales))
-						for i, locale := range util.Locales {
-							validLocals[i] = strings.ToLower(locale.LocaleString)
-						}
-						return validLocals
-					}()...),
+				stringvalidator.OneOf(util.AllowedBCP47Locales...),
 			},
 			PlanModifiers: []planmodifier.String{
 				&validators.UniqueIdentifier{},
@@ -428,14 +421,10 @@ func (r *TemplateResource) ImportState(ctx context.Context, req resource.ImportS
 		return
 	}
 
-	validLocals := make([]string, len(util.Locales))
-	for i, l := range util.Locales {
-		validLocals[i] = strings.ToLower(l.LocaleString)
-	}
-	if !util.Contains(validLocals, locale) {
+	if !util.Contains(util.AllowedBCP47Locales, locale) {
 		resp.Diagnostics.AddError(
 			"Unexpected Import Identifier",
-			fmt.Sprintf("Invalid locale provided in import identifier. Valid locales %+v, got: %s", validLocals, locale),
+			fmt.Sprintf("Invalid locale provided in import identifier. Valid locales %+v, got: %s", util.AllowedBCP47Locales, locale),
 		)
 		return
 	}

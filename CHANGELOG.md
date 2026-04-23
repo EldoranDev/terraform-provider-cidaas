@@ -1,5 +1,11 @@
 ## Changelog
 
+### 3.5.10
+
+#### Bug Fixes
+
+- **cidaas_template:** `locale` validation now allows canonical BCP47 tags (e.g. `en-US`, `de-DE`, or language-only `en`) instead of an all-lowercase allow list, so region casing matches BCP47 and values such as `de-DE` are accepted. Import uses the same allow list. Update configurations that used all-lowercase locales (e.g. `en-us` → `en-US`).
+
 ### 3.5.9
 
 #### Enhancements
