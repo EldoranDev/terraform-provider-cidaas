@@ -78,7 +78,7 @@ var templateSchema = schema.Schema{
 		},
 		"locale": schema.StringAttribute{
 			Required:            true,
-			MarkdownDescription: "The BCP47 locale of the template (e.g. `en-US`, `de-DE`, or a language-only tag like `en`). Use lower case for the language subtag and upper case for the region when present. Must be one of the allowed locale tags; see the Allowed Locales section below. It cannot be updated for an existing state.",
+			MarkdownDescription: "The BCP47 locale of the template (e.g. `en-US`, `en-GB`, `de-DE`, or a language-only tag like `en`). Use lowercase for the language subtag and uppercase for the region when present. Must be one of the allowed locale tags; see the Allowed Locales section below. It cannot be updated for an existing state.",
 			Validators: []validator.String{
 				stringvalidator.OneOf(util.AllowedBCP47Locales...),
 			},

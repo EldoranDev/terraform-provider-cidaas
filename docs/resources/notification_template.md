@@ -41,7 +41,7 @@ resource "cidaas_notification_template" "welcome_email_en" {
 - `content` (String) Template body (HTML/text per message_format).
 - `description` (String) Description of the template (10–600 characters per API validation).
 - `group_id` (String) Template group id (e.g. `default`, `developer`).
-- `locale` (String) BCP47 locale (e.g. `en`, `de`).
+- `locale` (String) BCP47 locale (e.g. `en`, `en-US`, `en-GB`, `de-DE`). Use lowercase for the language subtag and uppercase for the region when present.
 - `message_format` (String) Message format: `html`, `text`, or `media` (notification-srv `messageFormat`).
 - `template_key` (String) Template type key (template type id).
 

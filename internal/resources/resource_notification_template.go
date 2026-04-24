@@ -107,7 +107,7 @@ var notificationTemplateSchema = schema.Schema{
 		},
 		"locale": schema.StringAttribute{
 			Required:            true,
-			MarkdownDescription: "BCP47 locale (e.g. `en`, `de`).",
+			MarkdownDescription: "BCP47 locale (e.g. `en`, `en-US`, `en-GB`, `de-DE`). Use lowercase for the language subtag and uppercase for the region when present.",
 			PlanModifiers: []planmodifier.String{
 				stringplanmodifier.RequiresReplace(),
 			},
