@@ -1,5 +1,11 @@
 ## Changelog
 
+### 3.5.11
+
+#### Breaking changes
+
+- **cidaas_notifications_template_group:** Removed the `enabled` argument; notification-srv template groups do not expose this field. Remove `enabled` from configuration if present.
+
 ### 3.5.10
 
 #### Bug Fixes

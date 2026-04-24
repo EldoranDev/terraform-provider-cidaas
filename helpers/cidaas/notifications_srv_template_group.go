@@ -62,8 +62,6 @@ type NotificationsSrvTemplateGroupRequest struct {
 	TGType        string                                 `json:"tgType,omitempty"`
 	Description   string                                 `json:"description,omitempty"`
 	Owner         string                                 `json:"owner,omitempty"`
-	UserGroupIDs  []string                               `json:"userGroupIds,omitempty"`
-	Enabled       *bool                                  `json:"enabled,omitempty"`
 	DefaultLocale string                                 `json:"defaultLocale,omitempty"`
 	CommSettings  map[string]NotificationsSrvCommSetting `json:"commSettings,omitempty"`
 	Copy          *NotificationsSrvCopy                  `json:"copy,omitempty"`
@@ -83,8 +81,6 @@ type NotificationsSrvTemplateGroupData struct {
 	TGType        string                                 `json:"tgType,omitempty"`
 	Description   string                                 `json:"description,omitempty"`
 	Owner         string                                 `json:"owner,omitempty"`
-	UserGroupIDs  []string                               `json:"userGroupIds,omitempty"`
-	Enabled       *bool                                  `json:"enabled,omitempty"`
 	DefaultLocale string                                 `json:"defaultLocale,omitempty"`
 	CommSettings  map[string]NotificationsSrvCommSetting `json:"commSettings,omitempty"`
 	CopyStats     []NotificationsSrvCopyStats            `json:"CopyStats,omitempty"`

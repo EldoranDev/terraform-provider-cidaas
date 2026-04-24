@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
@@ -112,17 +111,6 @@ var notificationsTemplateGroupSchema = schema.Schema{
 			Default:             stringdefault.StaticString("client"),
 			MarkdownDescription: "Object owner, e.g. `client`.",
 		},
-		"enabled": schema.BoolAttribute{
-			Optional:            true,
-			Computed:            true,
-			Default:             booldefault.StaticBool(true),
-			MarkdownDescription: "Whether the template group is enabled.",
-		},
-		"user_group_ids": schema.SetAttribute{
-			ElementType:         types.StringType,
-			Optional:            true,
-			MarkdownDescription: "Optional user group ids restricting access.",
-		},
 		"copy_from_group_id": schema.StringAttribute{
 			Optional:            true,
 			MarkdownDescription: "Source group id for template copy on create/update. If omitted with no locale mappings, the API defaults to `default`.",
@@ -168,8 +156,6 @@ type notificationsTemplateGroupModel struct {
 	Description        types.String `tfsdk:"description"`
 	DefaultLocale      types.String `tfsdk:"default_locale"`
 	Owner              types.String `tfsdk:"owner"`
-	Enabled            types.Bool   `tfsdk:"enabled"`
-	UserGroupIDs       types.Set    `tfsdk:"user_group_ids"`
 	CopyFromGroupID    types.String `tfsdk:"copy_from_group_id"`
 	CopyLocaleMappings types.List   `tfsdk:"copy_locale_mappings"`
 	CommSettingEmail   types.Object `tfsdk:"comm_setting_email"`
@@ -295,13 +281,6 @@ func buildNotificationsTemplateGroupRequest(ctx context.Context, m notifications
 		Owner:         m.Owner.ValueString(),
 		DefaultLocale: m.DefaultLocale.ValueString(),
 	}
-	if !m.Enabled.IsNull() {
-		v := m.Enabled.ValueBool()
-		req.Enabled = &v
-	}
-	if !m.UserGroupIDs.IsNull() && !m.UserGroupIDs.IsUnknown() {
-		diags.Append(m.UserGroupIDs.ElementsAs(ctx, &req.UserGroupIDs, false)...)
-	}
 
 	comm, d := commSettingsFromModel(ctx, m)
 	diags.Append(d...)
@@ -390,16 +369,6 @@ func notificationsDataToModel(data *cidaas.NotificationsSrvTemplateGroupData, cf
 		Description:   util.StringValueOrNull(&data.Description),
 		DefaultLocale: util.StringValueOrNull(&data.DefaultLocale),
 		Owner:         util.StringValueOrNull(&data.Owner),
-	}
-	if data.Enabled != nil {
-		m.Enabled = types.BoolValue(*data.Enabled)
-	} else {
-		m.Enabled = types.BoolNull()
-	}
-	if len(data.UserGroupIDs) > 0 {
-		m.UserGroupIDs = util.SetValueOrNull(data.UserGroupIDs)
-	} else {
-		m.UserGroupIDs = types.SetNull(types.StringType)
 	}
 	// Preserve config-only copy attributes from prior state / plan
 	m.CopyFromGroupID = cfg.CopyFromGroupID
