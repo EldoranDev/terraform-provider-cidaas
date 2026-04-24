@@ -204,6 +204,9 @@ func (r *ScopeResource) Read(ctx context.Context, req resource.ReadRequest, resp
 
 	res, err := r.cidaasClient.Scopes.Get(ctx, state.ScopeKey.ValueString())
 	if err != nil {
+		if readHandleNotFound(ctx, resp, err) {
+			return
+		}
 		tflog.Error(ctx, "failed to read scope via API", util.H{
 			"scope_key": state.ScopeKey.ValueString(),
 			"error":     err.Error(),

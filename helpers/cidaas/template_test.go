@@ -4,11 +4,14 @@ package cidaas
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
+
+	"github.com/Cidaas/terraform-provider-cidaas/helpers/util"
 )
 
 func TestNewTemplate(t *testing.T) {
@@ -277,9 +280,11 @@ func TestTemplate_Get_NotFound_204(t *testing.T) {
 		t.Error("Expected error for 204 status, got nil")
 	}
 
-	expectedError := "template not found for the  template_key NONEXISTENT with template type EMAIL and locale en-US"
-	if err.Error() != expectedError {
-		t.Errorf("Expected error '%s', got '%s'", expectedError, err.Error())
+	if !errors.Is(err, util.ErrResourceNotFound) {
+		t.Errorf("expected ErrResourceNotFound, got %v", err)
+	}
+	if !strings.Contains(err.Error(), "template not found for the  template_key NONEXISTENT") {
+		t.Errorf("unexpected error: %v", err)
 	}
 }
 

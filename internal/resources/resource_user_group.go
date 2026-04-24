@@ -209,6 +209,9 @@ func (r *UserGroupResource) Read(ctx context.Context, req resource.ReadRequest, 
 
 	res, err := r.cidaasClient.UserGroup.Get(ctx, state.GroupID.ValueString())
 	if err != nil {
+		if readHandleNotFound(ctx, resp, err) {
+			return
+		}
 		tflog.Error(ctx, "failed to read user_group via API", util.H{
 			"group_id": state.GroupID.ValueString(),
 			"error":    err.Error(),

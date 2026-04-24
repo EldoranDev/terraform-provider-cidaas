@@ -1,5 +1,11 @@
 ## Changelog
 
+### 3.5.12
+
+#### Enhancements
+
+- **All managed resources:** On refresh, if the remote object was deleted outside Terraform (e.g. HTTP **404** or equivalent not-found from the API), **Read** now removes the instance from state instead of failing the plan. The next apply can recreate the resource. Data sources are unchanged (they still error when the lookup fails).
+
 ### 3.5.11
 
 #### Breaking changes

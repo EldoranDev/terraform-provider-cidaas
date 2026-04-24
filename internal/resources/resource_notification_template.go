@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
 // Values match notification-srv / cpentity.CommMethod JSON (lowercase).
@@ -106,7 +107,7 @@ var notificationTemplateSchema = schema.Schema{
 		},
 		"locale": schema.StringAttribute{
 			Required:            true,
-			MarkdownDescription: "BCP47 locale (e.g. `en`, `de`).",
+			MarkdownDescription: "BCP47 locale (e.g. `en`, `en-US`, `en-GB`, `de-DE`). Use lowercase for the language subtag and uppercase for the region when present.",
 			PlanModifiers: []planmodifier.String{
 				stringplanmodifier.RequiresReplace(),
 			},
@@ -226,11 +227,17 @@ func (r *NotificationTemplateResource) Read(ctx context.Context, req resource.Re
 	}
 	res, err := r.cidaasClient.NotificationsSrvTemplate.Get(ctx, state.ID.ValueString())
 	if err != nil {
+		if readHandleNotFound(ctx, resp, err) {
+			return
+		}
 		resp.Diagnostics.AddError("failed to read notification template", util.FormatErrorMessage(err))
 		return
 	}
 	if res == nil {
-		resp.Diagnostics.AddError("notification template not found", state.ID.ValueString())
+		tflog.Info(ctx, "notification template not found in remote; removing from Terraform state", util.H{
+			"id": state.ID.ValueString(),
+		})
+		resp.State.RemoveResource(ctx)
 		return
 	}
 	out := notificationTemplateFromAPI(res)

@@ -273,6 +273,9 @@ func (r *WebhookResource) Read(ctx context.Context, req resource.ReadRequest, re
 
 	res, err := r.cidaasClient.Webhook.Get(ctx, state.ID.ValueString())
 	if err != nil {
+		if readHandleNotFound(ctx, resp, err) {
+			return
+		}
 		tflog.Error(ctx, "failed to read webhook via API", util.H{
 			"webhook_id": state.ID.ValueString(),
 			"error":      err.Error(),

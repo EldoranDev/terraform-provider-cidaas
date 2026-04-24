@@ -125,6 +125,9 @@ func (r *RoleResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 
 	response, err := r.cidaasClient.Roles.GetRole(ctx, state.ID.ValueString())
 	if err != nil {
+		if readHandleNotFound(ctx, resp, err) {
+			return
+		}
 		tflog.Error(ctx, "failed to read role via API", util.H{
 			"role_id": state.ID.ValueString(),
 			"error":   err.Error(),

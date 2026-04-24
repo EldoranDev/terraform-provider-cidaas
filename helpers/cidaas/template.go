@@ -122,7 +122,7 @@ func (t *Template) Get(ctx context.Context, template TemplateModel, isSystemTemp
 	}
 	defer res.Body.Close()
 	if res.StatusCode == 204 {
-		return nil, fmt.Errorf("template not found for the  template_key %s with template type %s and locale %s", template.TemplateKey, template.TemplateType, template.Locale)
+		return nil, fmt.Errorf("%w: template not found for the  template_key %s with template type %s and locale %s", util.ErrResourceNotFound, template.TemplateKey, template.TemplateType, template.Locale)
 	}
 	// handle empty response body
 	bodyBytes, err := io.ReadAll(res.Body)

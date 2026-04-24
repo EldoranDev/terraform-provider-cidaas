@@ -215,6 +215,9 @@ func (r *NotificationsTemplateGroupResource) Read(ctx context.Context, req resou
 
 	res, err := r.cidaasClient.NotificationsSrvTemplateGroup.Get(ctx, state.GroupID.ValueString())
 	if err != nil {
+		if readHandleNotFound(ctx, resp, err) {
+			return
+		}
 		resp.Diagnostics.AddError("failed to read notifications template group", util.FormatErrorMessage(err))
 		return
 	}

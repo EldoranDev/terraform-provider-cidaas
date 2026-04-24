@@ -147,7 +147,13 @@ func (h *HTTPClient) handleErrorResponse(resp *http.Response, expectedCodes []in
 
 	bodyStr, bodyErr := ResponseToString(resp)
 	if bodyErr != nil {
+		if resp.StatusCode == http.StatusNotFound {
+			return fmt.Errorf("%w: failed to read response body: %v%s", ErrResourceNotFound, bodyErr, xRefNumberSuffix(resp))
+		}
 		return fmt.Errorf("unexpected status code %d, failed to read response body: %w%s", resp.StatusCode, bodyErr, xRefNumberSuffix(resp))
+	}
+	if resp.StatusCode == http.StatusNotFound {
+		return fmt.Errorf("%w: %s%s", ErrResourceNotFound, bodyStr, xRefNumberSuffix(resp))
 	}
 	return fmt.Errorf("unexpected status code %d, response body: %s%s", resp.StatusCode, bodyStr, xRefNumberSuffix(resp))
 }

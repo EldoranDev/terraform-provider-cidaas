@@ -220,6 +220,9 @@ func (r *PasswordPolicy) Read(ctx context.Context, req resource.ReadRequest, res
 	}
 	res, err := r.cidaasClient.PasswordPolicy.Get(ctx, state.ID.ValueString())
 	if err != nil {
+		if readHandleNotFound(ctx, resp, err) {
+			return
+		}
 		tflog.Error(ctx, "failed to read password policy via API", util.H{
 			"policy_id": state.ID.ValueString(),
 			"error":     err.Error(),

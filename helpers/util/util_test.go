@@ -1,9 +1,12 @@
 package util
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
+	"net/http/httptest"
 	"strings"
 	"testing"
 	"time"
@@ -290,6 +293,45 @@ func TestHandleResponseError(t *testing.T) {
 				t.Errorf("Expected no error, got %v", err)
 			}
 		})
+	}
+}
+
+func TestIsResourceNotFound(t *testing.T) {
+	t.Parallel()
+	if IsResourceNotFound(nil) {
+		t.Error("nil should not be not-found")
+	}
+	if !IsResourceNotFound(fmt.Errorf("%w: body", ErrResourceNotFound)) {
+		t.Error("wrapped ErrResourceNotFound should match")
+	}
+	if !IsResourceNotFound(fmt.Errorf("unexpected status code 404, response body: {}")) {
+		t.Error("legacy 404 string should match")
+	}
+	if IsResourceNotFound(fmt.Errorf("unexpected status code 500")) {
+		t.Error("500 should not match")
+	}
+}
+
+func TestHTTPClientMakeRequest_GET404IsResourceNotFound(t *testing.T) {
+	t.Parallel()
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusNotFound)
+		_, _ = w.Write([]byte(`{"ok":false}`))
+	}))
+	t.Cleanup(srv.Close)
+	client, err := NewHTTPClient(srv.URL, http.MethodGet)
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = client.MakeRequest(context.Background(), nil)
+	if err == nil {
+		t.Fatal("expected error")
+	}
+	if !IsResourceNotFound(err) {
+		t.Fatalf("expected not-found, got: %v", err)
+	}
+	if !errors.Is(err, ErrResourceNotFound) {
+		t.Fatalf("expected errors.Is ErrResourceNotFound, got: %v", err)
 	}
 }
 

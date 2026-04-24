@@ -2037,16 +2037,16 @@ must create a configuration that matches the existing system template and run te
 ```terraform
 // custom template example
 resource "cidaas_template" "custom-template-1" {
-  locale        = "en-in"
+  locale        = "en-US"
   template_key  = "TERRAFORM_TEMPLATE"
   template_type = "EMAIL"
-  content       = "Indian sample content"
-  subject       = "Email custom template subject with Indian English locale"
+  content       = "Sample email body in US English"
+  subject       = "Email custom template subject (en-US)"
 }
 
 // custom template example with same template_key as custom-template-1 but different template_type and locale
 resource "cidaas_template" "custom-template-2" {
-  locale        = "de-de"
+  locale        = "de-DE"
   template_key  = "TERRAFORM_TEMPLATE"
   template_type = "SMS"
   content       = "Sample SMS template content in German English"
@@ -2054,7 +2054,7 @@ resource "cidaas_template" "custom-template-2" {
 
 // custom template example with same template_key and template_type as custom-template-2 but different locale
 resource "cidaas_template" "custom-template-3" {
-  locale        = "en-us"
+  locale        = "en-US"
   template_key  = "TERRAFORM_TEMPLATE"
   template_type = "SMS"
   content       = "Sample SMS template content in US English"
@@ -2069,7 +2069,7 @@ resource "cidaas_template" "custom-template-3" {
 
 // Example of a system template for the template group "sample_group":
 resource "cidaas_template" "system-template-1" {
-  locale             = "en-us"
+  locale             = "en-US"
   template_key       = "VERIFY_USER"
   template_type      = "SMS"
   content            = "Hi {{name}}, here is the {{code}} to verify the user"
@@ -2082,7 +2082,7 @@ resource "cidaas_template" "system-template-1" {
 
 // Example of a  system template for the system default template_group "default"
 resource "cidaas_template" "system-template-2" {
-  locale             = "en-us"
+  locale             = "en-US"
   template_key       = "NOTIFY_COMMUNICATION_CHANGE"
   template_type      = "SMS"
   content            = "Your mobile number changed in {{account_name}}-account to {{communication_medium_value}}."
@@ -2099,7 +2099,7 @@ resource "cidaas_template" "system-template-2" {
 ### Required
 
 * `content` (String) The content of the template.
-* `locale` (String) The locale of the template. e.g. `en-us`, `en-uk`. Ensure the locale is set in lowercase. Find the allowed locales in the Allowed Locales section below. It cannot be updated for an existing state.
+* `locale` (String) The BCP47 locale of the template (e.g. `en-US`, `en-GB`, `de-DE`, or a language-only tag like `en`). Use lowercase for the language subtag and uppercase for the region when present. Find the allowed locales in the Allowed Locales section below. It cannot be updated for an existing state.
 * `template_key` (String) The unique name of the template. It cannot be updated for an existing state.
 * `template_type` (String) The type of the template. Allowed template_types are EMAIL, SMS, IVR and PUSH. Template types are case sensitive. It cannot be updated for an existing state.
 
@@ -2128,13 +2128,13 @@ Import is supported using the following syntax:
 # Instead, users must create a configuration that matches the existing system template and run terraform apply.
 
 # V3 Change Note: The format of the import identifier is changed in V3. In V2, the import identifier was joined by the chracter "-"
-# However in V3, it is replaced by the chracter ":". Example: TERRAFORM_TEMPLATE:SMS:en-us 
+# However in V3, it is replaced by the chracter ":". Example: TERRAFORM_TEMPLATE:SMS:en-US
 
 # Below is the command to import a custom template
 # Here, template_key:template_type:locale is a combination of template_key, template_type and locale, joined by the special character ":".
-# For example, if the resource name is "sample" with template_key as "TERRAFORM_TEMPLATE", template_type as "SMS" and locale as "de-de", the import statement would be:
+# For example, if the resource name is "sample" with template_key as "TERRAFORM_TEMPLATE", template_type as "SMS" and locale as "de-DE", the import statement would be:
 
-terraform import cidaas_template.sample TERRAFORM_TEMPLATE:SMS:de-de
+terraform import cidaas_template.sample TERRAFORM_TEMPLATE:SMS:de-DE
 ```
 
 # cidaas_notifications_template_group (Resource)
@@ -2145,10 +2145,10 @@ See [Notification templates (notification-srv)](#notification-templates-notifica
 
 # cidaas_notification_template (Resource)
 
-Manages a **single template document** via notification-srv `GET/POST/PUT/DELETE …/templates/…`. Import with the template document id:
+Manages a **single template document** via notification-srv `GET/POST/PUT/DELETE …/templates/…`. Import with the template document id (the `_id` value; the locale segment is often lowercased in that id, e.g. `en-us`, while `locale` in configuration should use canonical BCP47 such as `en-US`):
 
 ```shell
-terraform import cidaas_notification_template.example "default:WELCOME_USER:email:en-us"
+terraform import cidaas_notification_template.example "<template_document_id>"
 ```
 
 # cidaas_notification_template_type (Resource)

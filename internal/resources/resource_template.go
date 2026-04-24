@@ -78,7 +78,7 @@ var templateSchema = schema.Schema{
 		},
 		"locale": schema.StringAttribute{
 			Required:            true,
-			MarkdownDescription: "The BCP47 locale of the template (e.g. `en-US`, `de-DE`, or a language-only tag like `en`). Use lower case for the language subtag and upper case for the region when present. Must be one of the allowed locale tags; see the Allowed Locales section below. It cannot be updated for an existing state.",
+			MarkdownDescription: "The BCP47 locale of the template (e.g. `en-US`, `en-GB`, `de-DE`, or a language-only tag like `en`). Use lowercase for the language subtag and uppercase for the region when present. Must be one of the allowed locale tags; see the Allowed Locales section below. It cannot be updated for an existing state.",
 			Validators: []validator.String{
 				stringvalidator.OneOf(util.AllowedBCP47Locales...),
 			},
@@ -271,6 +271,9 @@ func (r *TemplateResource) Read(ctx context.Context, req resource.ReadRequest, r
 
 	res, err := r.cidaasClient.Templates.Get(ctx, template, state.IsSystemTemplate.ValueBool())
 	if err != nil {
+		if readHandleNotFound(ctx, resp, err) {
+			return
+		}
 		tflog.Error(ctx, "failed to read template via API", util.H{
 			"template_key": state.TemplateKey.ValueString(),
 			"error":        err.Error(),

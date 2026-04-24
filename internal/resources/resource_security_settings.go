@@ -606,6 +606,9 @@ func (r *securitySettingsResource) Read(ctx context.Context, req resource.ReadRe
 
 	refreshed, err := r.cidaasClient.SecuritySettings.Get(ctx)
 	if err != nil {
+		if readHandleNotFound(ctx, resp, err) {
+			return
+		}
 		resp.Diagnostics.AddError("failed to read fraud-detection settings", err.Error())
 		return
 	}

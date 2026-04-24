@@ -225,6 +225,9 @@ func (r *HostedPageResource) Read(ctx context.Context, req resource.ReadRequest,
 	}
 	res, err := r.cidaasClient.HostedPages.Get(ctx, state.ID.ValueString())
 	if err != nil {
+		if readHandleNotFound(ctx, resp, err) {
+			return
+		}
 		tflog.Error(ctx, "failed to read hosted page via API", util.H{
 			"hosted_page_id": state.ID.ValueString(),
 			"error":          err.Error(),

@@ -490,6 +490,9 @@ func (r *CustomProvider) Read(ctx context.Context, req resource.ReadRequest, res
 
 	res, err := r.cidaasClient.CustomProvider.GetCustomProvider(ctx, state.ProviderName.ValueString())
 	if err != nil {
+		if readHandleNotFound(ctx, resp, err) {
+			return
+		}
 		resp.Diagnostics.AddError("failed to read custom provider", util.FormatErrorMessage(err))
 		return
 	}
