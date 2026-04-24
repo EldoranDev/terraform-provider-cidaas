@@ -259,6 +259,9 @@ func (r *TemplateGroupResource) Read(ctx context.Context, req resource.ReadReque
 
 	res, err := r.cidaasClient.TemplateGroup.Get(ctx, state.GroupID.ValueString())
 	if err != nil {
+		if readHandleNotFound(ctx, resp, err) {
+			return
+		}
 		tflog.Error(ctx, "failed to read template group via API", util.H{
 			"group_id": state.GroupID.ValueString(),
 			"error":    err.Error(),

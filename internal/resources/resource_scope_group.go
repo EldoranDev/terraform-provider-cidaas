@@ -142,6 +142,9 @@ func (r *ScopeGroupResource) Read(ctx context.Context, req resource.ReadRequest,
 
 	res, err := r.cidaasClient.ScopeGroup.Get(ctx, state.GroupName.ValueString())
 	if err != nil {
+		if readHandleNotFound(ctx, resp, err) {
+			return
+		}
 		tflog.Error(ctx, "failed to read scope group via API", util.H{
 			"group_name": state.GroupName.ValueString(),
 			"error":      err.Error(),

@@ -282,6 +282,9 @@ func (r *TemplateTypeResource) Read(ctx context.Context, req resource.ReadReques
 
 	response, err := r.cidaasClient.TemplateType.Get(state.TemplateKey.ValueString())
 	if err != nil {
+		if readHandleNotFound(ctx, resp, err) {
+			return
+		}
 		resp.Diagnostics.AddError("failed to read template type", util.FormatErrorMessage(err))
 		return
 	}

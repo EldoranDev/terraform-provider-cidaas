@@ -134,6 +134,9 @@ func (r *AppResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 	tflog.Debug(ctx, "successfully extracted app configurations")
 	data, err := r.cidaasClient.Apps.Get(ctx, state.ClientID.ValueString())
 	if err != nil {
+		if readHandleNotFound(ctx, resp, err) {
+			return
+		}
 		tflog.Error(ctx, "failed to read app via API", util.H{
 			"client_id": state.ClientID.ValueString(),
 			"error":     err.Error(),

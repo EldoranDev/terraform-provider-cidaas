@@ -348,6 +348,9 @@ func (r *SocialProvider) Read(ctx context.Context, req resource.ReadRequest, res
 	})
 	res, err := r.cidaasClient.SocialProvider.Get(ctx, state.ProviderName.ValueString(), state.ID.ValueString())
 	if err != nil {
+		if readHandleNotFound(ctx, resp, err) {
+			return
+		}
 		tflog.Error(ctx, "failed to read social provider via API", util.H{
 			"provider_name": state.ProviderName.ValueString(),
 			"provider_id":   state.ID.ValueString(),

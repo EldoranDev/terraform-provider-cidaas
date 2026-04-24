@@ -167,6 +167,9 @@ func (r *GroupTypeResource) Read(ctx context.Context, req resource.ReadRequest, 
 	}
 	res, err := r.cidaasClient.GroupType.Get(ctx, state.GroupType.ValueString())
 	if err != nil {
+		if readHandleNotFound(ctx, resp, err) {
+			return
+		}
 		tflog.Error(ctx, "failed to read group type via API", util.H{
 			"group_type": state.GroupType.ValueString(),
 			"error":      err.Error(),

@@ -602,6 +602,9 @@ func (r *RegFieldResource) Read(ctx context.Context, req resource.ReadRequest, r
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	res, err := r.cidaasClient.RegFields.Get(ctx, state.FieldKey.ValueString())
 	if err != nil {
+		if readHandleNotFound(ctx, resp, err) {
+			return
+		}
 		resp.Diagnostics.AddError("failed to read registration field", util.FormatErrorMessage(err))
 		return
 	}

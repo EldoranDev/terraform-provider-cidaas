@@ -103,11 +103,11 @@ func (t *TemplateGroup) Get(ctx context.Context, groupID string) (*TemplateGroup
 		return nil, err
 	}
 	res, err := client.MakeRequest(ctx, nil)
-	if res.StatusCode == http.StatusNoContent {
+	if res != nil && res.StatusCode == http.StatusNoContent {
 		resp := &TemplateGroupResponse{
 			Status: http.StatusNoContent,
 		}
-		return resp, fmt.Errorf("template group not found by the provider group_id  %s", groupID)
+		return resp, fmt.Errorf("%w: template group not found by the provider group_id  %s", util.ErrResourceNotFound, groupID)
 	}
 	if err = util.HandleResponseError(res, err); err != nil {
 		return nil, err

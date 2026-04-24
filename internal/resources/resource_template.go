@@ -271,6 +271,9 @@ func (r *TemplateResource) Read(ctx context.Context, req resource.ReadRequest, r
 
 	res, err := r.cidaasClient.Templates.Get(ctx, template, state.IsSystemTemplate.ValueBool())
 	if err != nil {
+		if readHandleNotFound(ctx, resp, err) {
+			return
+		}
 		tflog.Error(ctx, "failed to read template via API", util.H{
 			"template_key": state.TemplateKey.ValueString(),
 			"error":        err.Error(),

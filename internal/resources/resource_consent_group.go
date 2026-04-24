@@ -140,6 +140,9 @@ func (r *ConsentGroupResource) Read(ctx context.Context, req resource.ReadReques
 
 	res, err := r.cidaasClient.ConsentGroup.Get(ctx, state.ID.ValueString())
 	if err != nil {
+		if readHandleNotFound(ctx, resp, err) {
+			return
+		}
 		tflog.Error(ctx, "failed to read consent group via API", util.H{
 			"consent_group_id": state.ID.ValueString(),
 			"error":            err.Error(),

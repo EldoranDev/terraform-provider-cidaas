@@ -298,6 +298,9 @@ func (r *ConsentVersionResource) Read(ctx context.Context, req resource.ReadRequ
 	}
 	res, err := r.cidaasClient.ConsentVersion.Get(ctx, state.ConsentID.ValueString())
 	if err != nil {
+		if readHandleNotFound(ctx, resp, err) {
+			return
+		}
 		tflog.Error(ctx, "failed to read consent version via API", util.H{
 			"consent_id": state.ConsentID.ValueString(),
 			"error":      err.Error(),
