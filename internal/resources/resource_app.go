@@ -534,6 +534,9 @@ func updateAppState(state *AppConfig, resp cidaas.AppResponse, isImport bool) {
 	if !state.AllowedOrigins.IsNull() || isImport {
 		state.AllowedOrigins = util.SetValueOrNull(data.AllowedOrigins)
 	}
+	if !state.AllowedNativeClients.IsNull() || isImport {
+		state.AllowedNativeClients = util.SetValueOrNull(data.AllowedNativeClients)
+	}
 	if !state.LoginProviders.IsNull() || isImport {
 		state.LoginProviders = util.SetValueOrNull(data.LoginProviders)
 	}
