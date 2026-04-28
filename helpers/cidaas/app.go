@@ -45,6 +45,7 @@ type AppModel struct {
 	IsHybridApp                      *bool                       `json:"is_hybrid_app,omitempty"`
 	AllowedWebOrigins                []string                    `json:"allowed_web_origins"`
 	AllowedOrigins                   []string                    `json:"allowed_origins"`
+	AllowedNativeClients             []string                    `json:"allowed_native_clients,omitempty"`
 	MobileSettings                   *IAppMobileSettings         `json:"mobile_settings,omitempty"`
 	DefaultMaxAge                    *int64                      `json:"default_max_age,omitempty"`
 	TokenLifetimeInSeconds           *int64                      `json:"token_lifetime_in_seconds,omitempty"`
