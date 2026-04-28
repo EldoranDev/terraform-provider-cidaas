@@ -112,6 +112,7 @@ type AppConfig struct {
 	RequiredFields               types.Set `tfsdk:"required_fields"`
 	AllowedWebOrigins            types.Set `tfsdk:"allowed_web_origins"`
 	AllowedOrigins               types.Set `tfsdk:"allowed_origins"`
+	AllowedNativeClients         types.Set `tfsdk:"allowed_native_clients"`
 	Contacts                     types.Set `tfsdk:"contacts"`
 	DefaultAcrValues             types.Set `tfsdk:"default_acr_values"`
 	WebMessageUris               types.Set `tfsdk:"web_message_uris"`
@@ -395,6 +396,7 @@ func prepareAppModel(ctx context.Context, plan AppConfig) (*cidaas.AppModel, dia
 	diags.Append(assignSetValues(ctx, plan.AllowedLogoutUrls, &app.AllowedLogoutUrls)...)
 	diags.Append(assignSetValues(ctx, plan.AllowedWebOrigins, &app.AllowedWebOrigins)...)
 	diags.Append(assignSetValues(ctx, plan.AllowedOrigins, &app.AllowedOrigins)...)
+	diags.Append(assignSetValues(ctx, plan.AllowedNativeClients, &app.AllowedNativeClients)...)
 	diags.Append(assignSetValues(ctx, plan.LoginProviders, &app.LoginProviders)...)
 	diags.Append(assignSetValues(ctx, plan.DefaultScopes, &app.DefaultScopes)...)
 	diags.Append(assignSetValues(ctx, plan.PendingScopes, &app.PendingScopes)...)

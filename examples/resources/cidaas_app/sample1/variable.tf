@@ -33,6 +33,7 @@ variable "common_configs" {
     is_hybrid_app                   = optional(bool)
     allowed_web_origins             = optional(list(string))
     allowed_origins                 = optional(list(string))
+    allowed_native_clients          = optional(list(string))
     mobile_settings = optional(object({
       team_id      = optional(string)
       bundle_id    = optional(string)

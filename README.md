@@ -351,6 +351,7 @@ resource "cidaas_app" "sample" {
 - `allowed_groups` (Attributes List) (see [below for nested schema](#nestedatt--allowed_groups))
 - `allowed_logout_urls` (Set of String) Allowed logout URLs for OAuth2 client.
 - `allowed_mfa` (Set of String)
+- `allowed_native_clients` (Set of String) Client IDs of native apps that may use session transfer (STT) with this client. Typically the browser or web client lists the mobile/native client's `client_id` so STTs issued for that native client are accepted.
 - `allowed_origins` (Set of String) List of the origins allowed to access the client.
 - `allowed_roles` (Set of String)
 - `allowed_web_origins` (Set of String) List of the web origins allowed to access the client.
@@ -384,7 +385,7 @@ resource "cidaas_app" "sample" {
 - `enable_login_spi` (Boolean) If enabled, the login service verifies whether login spi responsded with success only then it issues a token.
 - `enable_passwordless_auth` (Boolean) Enable passwordless authentication. Default is set to `true` while creating an app.
 - `enabled` (Boolean)
-- `grant_types` (Set of String) The grant types of the client. The default value is set to `['implicit','authorization_code', 'password', 'refresh_token']`
+- `grant_types` (Set of String) The grant types of the client. The default value is set to `['implicit','authorization_code', 'password', 'refresh_token']`. Include `session_transfer` on the native client when using the session transfer token (STT) flow.
 - `group_ids` (Set of String)
 - `group_role_restriction` (Attributes) (see [below for nested schema](#nestedatt--group_role_restriction))
 - `group_selection` (Attributes) (see [below for nested schema](#nestedatt--group_selection))

@@ -197,6 +197,12 @@ var resourceAppSchema = schema.Schema{
 			MarkdownDescription: "List of the origins allowed to access the client.",
 			Optional:            true,
 		},
+		"allowed_native_clients": schema.SetAttribute{
+			ElementType: types.StringType,
+			MarkdownDescription: "Client IDs of native apps that may use session transfer (STT) with this client. " +
+				"Typically the browser or web client lists the mobile/native client's `client_id` so STTs issued for that native client are accepted.",
+			Optional: true,
+		},
 		// cidaas faulty api, so marked this attribute as computed
 		"mobile_settings": schema.SingleNestedAttribute{
 			Optional: true,
