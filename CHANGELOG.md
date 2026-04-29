@@ -1,11 +1,18 @@
 ## Changelog
 
-### 3.5.12
+### 3.5.13
 
 #### Enhancements
 
 - **cidaas_app:** Optional `allowed_native_clients` (set of client IDs) for the session transfer flow: web clients can list native app `client_id` values whose STTs are accepted. Maps to API field `allowed_native_clients` on `apps-srv/clients`.
 - **All managed resources:** On refresh, if the remote object was deleted outside Terraform (e.g. HTTP **404** or equivalent not-found from the API), **Read** now removes the instance from state instead of failing the plan. The next apply can recreate the resource. Data sources are unchanged (they still error when the lookup fails).
+
+### 3.5.12
+
+#### Enhancements
+
+- **All managed resources:** On refresh, if the remote object was deleted outside Terraform (e.g. HTTP **404** or equivalent not-found from the API), **Read** now removes the instance from state instead of failing the plan. The next apply can recreate the resource. Data sources are unchanged (they still error when the lookup fails).
+
 
 ### 3.5.11
 
