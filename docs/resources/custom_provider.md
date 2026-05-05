@@ -2,7 +2,7 @@
 page_title: "cidaas_custom_provider Resource - cidaas"
 subcategory: ""
 description: |-
-  This example demonstrates the configuration of a custom provider resource for interacting with Cidaas.
+  This example demonstrates the configuration of a custom provider resource for interacting with cidaas.
   Ensure that the below scopes are assigned to the client with the specified client_id:
   cidaas:providers_readcidaas:providers_writecidaas:providers_delete
   -> Note: Write-Only argument client_secret_wo is available to use in place of client_secret. Write-only arguments are supported in HashiCorp Terraform 1.11.0 and later. Learn more https://developer.hashicorp.com/terraform/language/resources/ephemeral#write-only-arguments.
@@ -10,7 +10,7 @@ description: |-
 
 # cidaas_custom_provider (Resource)
 
-This example demonstrates the configuration of a custom provider resource for interacting with Cidaas.
+This example demonstrates the configuration of a custom provider resource for interacting with cidaas.
 
  Ensure that the below scopes are assigned to the client with the specified `client_id`:
 - cidaas:providers_read
@@ -107,7 +107,7 @@ resource "cidaas_custom_provider" "sample" {
 - `amr_config` (Attributes List) AMR configuration mapping. (see [below for nested schema](#nestedatt--amr_config))
 - `apikey_details` (Attributes) Configuration for API key-based authentication. It's a **required** parameter when the auth_type is APIKEY. (see [below for nested schema](#nestedatt--apikey_details))
 - `auth_type` (String) Type of authentication. Allowed values `APIKEY`, `CIDAAS_OAUTH2` and `TOTP`.
-- `cidaas_auth_details` (Attributes) Configuration for Cidaas authentication. It's a **required** parameter when the auth_type is CIDAAS_OAUTH2. (see [below for nested schema](#nestedatt--cidaas_auth_details))
+- `cidaas_auth_details` (Attributes) Configuration for cidaas authentication. It's a **required** parameter when the auth_type is CIDAAS_OAUTH2. (see [below for nested schema](#nestedatt--cidaas_auth_details))
 - `client_secret` (String, Sensitive) The client secret of the provider. Exactly one of `client_secret` or `client_secret_wo` must be set. Note that this will be stored in the state file.
 - `client_secret_wo` (String, Sensitive, [Write-only](https://developer.hashicorp.com/terraform/language/resources/ephemeral#write-only-arguments)) Write-Only equivalent of `client_secret`. The value is sent to cidaas on create and update but is not stored in plan or state. Must be set together with `client_secret_wo_version`. Write-only arguments are supported in HashiCorp Terraform 1.11.0 and later.
 - `client_secret_wo_version` (String) Used together with `client_secret_wo` to trigger an update. Increment this value when an update to `client_secret_wo` is required.
@@ -149,7 +149,7 @@ Required:
 
 Required:
 
-- `client_id` (String) The client ID for Cidaas authentication.
+- `client_id` (String) The client ID for cidaas authentication.
 
 
 <a id="nestedatt--scopes"></a>

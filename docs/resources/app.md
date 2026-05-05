@@ -2,7 +2,7 @@
 page_title: "cidaas_app Resource - cidaas"
 subcategory: ""
 description: |-
-  The App resource allows creation and management of clients in Cidaas system. When creating a client with a custom client_id and client_secret you can include the configuration in the resource. If not provided, Cidaas will generate a set for you. client_secret is sensitive data. Refer to the article Terraform Sensitive Variables https://developer.hashicorp.com/terraform/tutorials/configuration-language/sensitive-variables to properly handle sensitive information.
+  The App resource allows creation and management of clients in cidaas system. When creating a client with a custom client_id and client_secret you can include the configuration in the resource. If not provided, cidaas will generate a set for you. client_secret is sensitive data. Refer to the article Terraform Sensitive Variables https://developer.hashicorp.com/terraform/tutorials/configuration-language/sensitive-variables to properly handle sensitive information.
   Ensure that the below scopes are assigned to the client with the specified client_id:
   cidaas:apps_readcidaas:apps_writecidaas:apps_delete
   -> Note: Write-Only argument client_secret_wo is available to use in place of client_secret. Write-only arguments are supported in HashiCorp Terraform 1.11.0 and later. Learn more https://developer.hashicorp.com/terraform/language/resources/ephemeral#write-only-arguments.
@@ -10,7 +10,7 @@ description: |-
 
 # cidaas_app (Resource)
 
-The App resource allows creation and management of clients in Cidaas system. When creating a client with a custom `client_id` and `client_secret` you can include the configuration in the resource. If not provided, Cidaas will generate a set for you. `client_secret` is sensitive data. Refer to the article [Terraform Sensitive Variables](https://developer.hashicorp.com/terraform/tutorials/configuration-language/sensitive-variables) to properly handle sensitive information.
+The App resource allows creation and management of clients in cidaas system. When creating a client with a custom `client_id` and `client_secret` you can include the configuration in the resource. If not provided, cidaas will generate a set for you. `client_secret` is sensitive data. Refer to the article [Terraform Sensitive Variables](https://developer.hashicorp.com/terraform/tutorials/configuration-language/sensitive-variables) to properly handle sensitive information.
 
  Ensure that the below scopes are assigned to the client with the specified `client_id`:
 - cidaas:apps_read
@@ -254,7 +254,7 @@ resource "cidaas_app" "sample" {
 - `enable_login_spi` (Boolean) If enabled, the login service verifies whether login spi responsded with success only then it issues a token.
 - `enable_passwordless_auth` (Boolean) Enable passwordless authentication. Default is set to `true` while creating an app.
 - `enabled` (Boolean)
-- `grant_types` (Set of String) The grant types of the client. The default value is set to `['implicit','authorization_code', 'password', 'refresh_token']`
+- `grant_types` (Set of String) The grant types of the client. The default value is set to `['implicit','authorization_code', 'password', 'refresh_token']`. Include `session_transfer` on the native client when using the session transfer token (STT) flow.
 - `group_ids` (Set of String)
 - `group_role_restriction` (Attributes) (see [below for nested schema](#nestedatt--group_role_restriction))
 - `group_selection` (Attributes) (see [below for nested schema](#nestedatt--group_selection))
