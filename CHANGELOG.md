@@ -1,5 +1,11 @@
 ## Changelog
 
+### 3.5.14
+
+#### Enhancements
+
+- **cidaas_social_provider, cidaas_custom_provider, cidaas_app:** Added Write-Only argument `client_secret_wo` (with companion `client_secret_wo_version`) as a secure alternative to `client_secret`. Values supplied via `client_secret_wo` are sent to cidaas on create and update but are not stored in plan or state; increment `client_secret_wo_version` to trigger an update. `client_secret` and `client_secret_wo` cannot be set together. On `cidaas_social_provider` and `cidaas_custom_provider`, `client_secret` is now Optional (one of `client_secret` or `client_secret_wo` is required). On `cidaas_app`, using `client_secret_wo` also disables cidaas server-side secret auto-generation — the value must be supplied by the user. Write-only arguments are supported in HashiCorp Terraform 1.11.0 and later.
+
 ### 3.5.13
 
 #### Enhancements

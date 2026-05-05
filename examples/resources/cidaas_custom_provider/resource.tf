@@ -1,3 +1,9 @@
+variable "custom_provider_client_secret" {
+  type      = string
+  sensitive = true
+  ephemeral = true
+}
+
 resource "cidaas_custom_provider" "sample" {
   standard_type          = "OAUTH2"
   authorization_endpoint = "https://cidaas.de/authz-srv/authz"
@@ -8,8 +14,14 @@ resource "cidaas_custom_provider" "sample" {
   userinfo_endpoint      = "https://cidaas.de/users-srv/userinfo"
   scope_display_label    = "terraform sample scope display name"
   client_id              = "acb-4a6b-9777-8a64abe6af"
-  client_secret          = "zcb-4a6b-9777-8a64abe6ay"
-  domains                = ["cidaas.de", "cidaas.org"]
+
+  # Write-Only: not stored in plan or state. Increment client_secret_wo_version to trigger an update.
+  client_secret_wo         = var.custom_provider_client_secret
+  client_secret_wo_version = "1"
+
+  # Alternative: client_secret = "zcb-4a6b-9777-8a64abe6ay" (stored in the state file).
+
+  domains = ["cidaas.de", "cidaas.org"]
 
   scopes = [
     {

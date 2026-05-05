@@ -30,9 +30,18 @@ resource "cidaas_app" "sample" {
     package_name = "sample-package-name"
     key_hash     = "sample-key-hash"
   }
-  // for custom client credentials use client_id and client_secret, you can leave blank if you want cidaas to create a set for you
+  // For custom client credentials set client_id and either client_secret or client_secret_wo.
+  // Omit both to have cidaas auto-generate client_secret (only with the non-Write-Only attribute).
+  //
+  // variable "app_client_secret" {
+  //   type      = string
+  //   sensitive = true
+  //   ephemeral = true
+  // }
   # client_id                       = ""
-  # client_secret                   = ""
+  # client_secret                   = "" # stored in the state file
+  # client_secret_wo                = var.app_client_secret # Write-Only (Terraform 1.11+)
+  # client_secret_wo_version        = "1"
   policy_uri                        = "https://cidaas.com"
   tos_uri                           = "https://cidaas.com"
   imprint_uri                       = "https://cidaas.com"

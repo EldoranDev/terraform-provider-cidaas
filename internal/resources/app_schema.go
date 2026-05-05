@@ -21,7 +21,10 @@ var resourceAppSchema = schema.Schema{
 		"\n\n Ensure that the below scopes are assigned to the client with the specified `client_id`:" +
 		"\n- cidaas:apps_read" +
 		"\n- cidaas:apps_write" +
-		"\n- cidaas:apps_delete",
+		"\n- cidaas:apps_delete" +
+		"\n\n-> **Note:** Write-Only argument `client_secret_wo` is available to use in place of `client_secret`." +
+		" Write-only arguments are supported in HashiCorp Terraform 1.11.0 and later." +
+		" [Learn more](https://developer.hashicorp.com/terraform/language/resources/ephemeral#write-only-arguments).",
 	Attributes: map[string]schema.Attribute{
 		"id": schema.StringAttribute{
 			Computed:            true,
@@ -251,14 +254,23 @@ var resourceAppSchema = schema.Schema{
 			},
 		},
 		"client_secret": schema.StringAttribute{
-			Optional:  true,
-			Computed:  true,
-			Sensitive: true,
-			MarkdownDescription: "The client_id is the unqique identifier of the app. It's an optional attribute." +
-				" If not provided, cidaas will gererate one for you and the state will be updated with the same",
+			Optional:            true,
+			Computed:            true,
+			Sensitive:           true,
+			MarkdownDescription: "The client secret of the app. If not provided and `client_secret_wo` is not set, cidaas will generate one for you and the state will be updated with the same. Note that this will be stored in the state file.",
 			PlanModifiers: []planmodifier.String{
 				stringplanmodifier.UseStateForUnknown(),
 			},
+		},
+		"client_secret_wo": schema.StringAttribute{
+			Optional:            true,
+			Sensitive:           true,
+			WriteOnly:           true,
+			MarkdownDescription: "Write-Only equivalent of `client_secret`. The value is sent to cidaas on create and update but is not stored in plan or state. Cannot be set together with `client_secret`. Must be set together with `client_secret_wo_version`. When set, the auto-generation of `client_secret` is disabled and the value must be supplied by the user. Write-only arguments are supported in HashiCorp Terraform 1.11.0 and later.",
+		},
+		"client_secret_wo_version": schema.StringAttribute{
+			Optional:            true,
+			MarkdownDescription: "Used together with `client_secret_wo` to trigger an update. Increment this value when an update to `client_secret_wo` is required.",
 		},
 		"policy_uri": schema.StringAttribute{
 			Optional:            true,

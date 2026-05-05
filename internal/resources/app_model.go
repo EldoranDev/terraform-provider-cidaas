@@ -33,6 +33,8 @@ type AppConfig struct {
 	TemplateGroupID                 types.String `tfsdk:"template_group_id"`
 	ClientID                        types.String `tfsdk:"client_id"`
 	ClientSecret                    types.String `tfsdk:"client_secret"`
+	ClientSecretWO                  types.String `tfsdk:"client_secret_wo"`
+	ClientSecretWOVersion           types.String `tfsdk:"client_secret_wo_version"`
 	PolicyURI                       types.String `tfsdk:"policy_uri"`
 	TosURI                          types.String `tfsdk:"tos_uri"`
 	ImprintURI                      types.String `tfsdk:"imprint_uri"`

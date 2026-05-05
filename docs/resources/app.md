@@ -2,19 +2,22 @@
 page_title: "cidaas_app Resource - cidaas"
 subcategory: ""
 description: |-
-  The App resource allows creation and management of clients in cidaas system. When creating a client with a custom client_id and client_secret you can include the configuration in the resource. If not provided, cidaas will generate a set for you. client_secret is sensitive data. Refer to the article Terraform Sensitive Variables https://developer.hashicorp.com/terraform/tutorials/configuration-language/sensitive-variables to properly handle sensitive information.
+  The App resource allows creation and management of clients in Cidaas system. When creating a client with a custom client_id and client_secret you can include the configuration in the resource. If not provided, Cidaas will generate a set for you. client_secret is sensitive data. Refer to the article Terraform Sensitive Variables https://developer.hashicorp.com/terraform/tutorials/configuration-language/sensitive-variables to properly handle sensitive information.
   Ensure that the below scopes are assigned to the client with the specified client_id:
   cidaas:apps_readcidaas:apps_writecidaas:apps_delete
+  -> Note: Write-Only argument client_secret_wo is available to use in place of client_secret. Write-only arguments are supported in HashiCorp Terraform 1.11.0 and later. Learn more https://developer.hashicorp.com/terraform/language/resources/ephemeral#write-only-arguments.
 ---
 
 # cidaas_app (Resource)
 
-The App resource allows creation and management of clients in cidaas system. When creating a client with a custom `client_id` and `client_secret` you can include the configuration in the resource. If not provided, cidaas will generate a set for you. `client_secret` is sensitive data. Refer to the article [Terraform Sensitive Variables](https://developer.hashicorp.com/terraform/tutorials/configuration-language/sensitive-variables) to properly handle sensitive information.
+The App resource allows creation and management of clients in Cidaas system. When creating a client with a custom `client_id` and `client_secret` you can include the configuration in the resource. If not provided, Cidaas will generate a set for you. `client_secret` is sensitive data. Refer to the article [Terraform Sensitive Variables](https://developer.hashicorp.com/terraform/tutorials/configuration-language/sensitive-variables) to properly handle sensitive information.
 
  Ensure that the below scopes are assigned to the client with the specified `client_id`:
 - cidaas:apps_read
 - cidaas:apps_write
 - cidaas:apps_delete
+
+-> **Note:** Write-Only argument `client_secret_wo` is available to use in place of `client_secret`. Write-only arguments are supported in HashiCorp Terraform 1.11.0 and later. [Learn more](https://developer.hashicorp.com/terraform/language/resources/ephemeral#write-only-arguments).
 
 From version 3.3.0, the attribute `common_configs` is not supported anymore. Instead, we encourage you to use the custom module **terraform-cidaas-app**.
 The module provides a variable with the same name `common_configs` which
@@ -106,9 +109,18 @@ resource "cidaas_app" "sample" {
     package_name = "sample-package-name"
     key_hash     = "sample-key-hash"
   }
-  // for custom client credentials use client_id and client_secret, you can leave blank if you want cidaas to create a set for you
+  // For custom client credentials set client_id and either client_secret or client_secret_wo.
+  // Omit both to have cidaas auto-generate client_secret (only with the non-Write-Only attribute).
+  //
+  // variable "app_client_secret" {
+  //   type      = string
+  //   sensitive = true
+  //   ephemeral = true
+  // }
   # client_id                       = ""
-  # client_secret                   = ""
+  # client_secret                   = "" # stored in the state file
+  # client_secret_wo                = var.app_client_secret # Write-Only (Terraform 1.11+)
+  # client_secret_wo_version        = "1"
   policy_uri                        = "https://cidaas.com"
   tos_uri                           = "https://cidaas.com"
   imprint_uri                       = "https://cidaas.com"
@@ -192,6 +204,8 @@ resource "cidaas_app" "sample" {
 
 ### Optional
 
+> **NOTE**: [Write-only arguments](https://developer.hashicorp.com/terraform/language/resources/ephemeral#write-only-arguments) are supported in Terraform 1.11 and later.
+
 - `accent_color` (String) The accent color of the client. e.g., `#f7941d`. The value must be a valid hex colorThe default is set to `#ef4923`.
 - `accept_roles_in_the_registration` (Boolean) A boolean flag that determines whether roles can be accepted during the registration process.
 - `ad_providers` (Attributes List) A list of Active Directory identity providers that users can authenticate with. (see [below for nested schema](#nestedatt--ad_providers))
@@ -220,7 +234,9 @@ resource "cidaas_app" "sample" {
 - `captcha_refs` (Set of String)
 - `client_display_name` (String) The display name of the client.
 - `client_id` (String) The client_id is the unqique identifier of the app. It's an optional attribute. If not provided, cidaas will gererate one for you and the state will be updated with the same
-- `client_secret` (String, Sensitive) The client_id is the unqique identifier of the app. It's an optional attribute. If not provided, cidaas will gererate one for you and the state will be updated with the same
+- `client_secret` (String, Sensitive) The client secret of the app. If not provided and `client_secret_wo` is not set, cidaas will generate one for you and the state will be updated with the same. Note that this will be stored in the state file.
+- `client_secret_wo` (String, Sensitive, [Write-only](https://developer.hashicorp.com/terraform/language/resources/ephemeral#write-only-arguments)) Write-Only equivalent of `client_secret`. The value is sent to cidaas on create and update but is not stored in plan or state. Cannot be set together with `client_secret`. Must be set together with `client_secret_wo_version`. When set, the auto-generation of `client_secret` is disabled and the value must be supplied by the user. Write-only arguments are supported in HashiCorp Terraform 1.11.0 and later.
+- `client_secret_wo_version` (String) Used together with `client_secret_wo` to trigger an update. Increment this value when an update to `client_secret_wo` is required.
 - `client_uri` (String)
 - `communication_medium_verification` (String)
 - `consent_page_group` (String)
@@ -238,7 +254,7 @@ resource "cidaas_app" "sample" {
 - `enable_login_spi` (Boolean) If enabled, the login service verifies whether login spi responsded with success only then it issues a token.
 - `enable_passwordless_auth` (Boolean) Enable passwordless authentication. Default is set to `true` while creating an app.
 - `enabled` (Boolean)
-- `grant_types` (Set of String) The grant types of the client. The default value is set to `['implicit','authorization_code', 'password', 'refresh_token']`. Include `session_transfer` on the native client when using the session transfer token (STT) flow.
+- `grant_types` (Set of String) The grant types of the client. The default value is set to `['implicit','authorization_code', 'password', 'refresh_token']`
 - `group_ids` (Set of String)
 - `group_role_restriction` (Attributes) (see [below for nested schema](#nestedatt--group_role_restriction))
 - `group_selection` (Attributes) (see [below for nested schema](#nestedatt--group_selection))
