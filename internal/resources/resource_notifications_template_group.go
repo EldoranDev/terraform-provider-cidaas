@@ -88,8 +88,11 @@ var notificationsTemplateGroupSchema = schema.Schema{
 			},
 		},
 		"tg_type": schema.StringAttribute{
-			Required:            true,
-			MarkdownDescription: "Template group type: `cidaas`, `developer`, or `reminder`.",
+			Required: true,
+			MarkdownDescription: "Template group type: `cidaas`, `developer`, or `reminder`. " +
+				"`cidaas` — standard Cidaas platform emails (e.g. welcome, password reset). " +
+				"`developer` — custom emails you design, trigger (e.g. from a flow), and fill with your payload. " +
+				"`reminder` — scheduled follow-up when a user delays an action (e.g. email verification).",
 			Validators: []validator.String{
 				stringvalidator.OneOf(notificationsTemplateGroupTGTypes...),
 			},
