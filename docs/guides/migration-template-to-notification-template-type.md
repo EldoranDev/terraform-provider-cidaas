@@ -71,6 +71,15 @@ Examples: `examples/resources/cidaas_notification_template_type/resource.tf`.
 6. **Validate**  
    Run `terraform plan` in non-production, test verification and notification flows, then roll out.
 
+## Notification-srv template groups (3.5.14)
+
+If you use **`cidaas_notifications_template_group`** (notification-srv, not legacy **`cidaas_template_group`**):
+
+- **Locale copy** is no longer on the group resource. Use **`cidaas_notifications_template_group_locale`** (one resource per locale). See **[Migration: Template group locale copy](migration-notifications-template-group-locales.md)**.
+- Set **`tg_type`** on the group: **`cidaas`** for platform groups; **`developer`** when the same `group_id` is used with **`cidaas_notification_template`** and custom **`cidaas_notification_template_type`**; **`reminder`** for reminder groups.
+
+Classic **`cidaas_template_group`** / **`cidaas_template`** (templates-srv) are unchanged by this split.
+
 ## Provider version
 
 Use a provider version that includes `cidaas_notification_template_type` (≥ **3.5.5**). See [CHANGELOG](https://github.com/Cidaas/terraform-provider-cidaas/blob/master/CHANGELOG.md) for fixes and enhancements per release.
@@ -79,3 +88,4 @@ Use a provider version that includes `cidaas_notification_template_type` (≥ **
 
 - Registry: [cidaas_template](https://registry.terraform.io/providers/cidaas/cidaas/latest/docs/resources/template), [cidaas_template_group](https://registry.terraform.io/providers/cidaas/cidaas/latest/docs/resources/template_group). The `cidaas_notification_template_type` page appears in the registry after provider docs are published for your release; until then, use the schema in the provider source (`internal/resources/resource_notification_template_type.go`) and the examples below.
 - Examples: [`examples/resources/cidaas_notification_template_type/`](https://github.com/Cidaas/terraform-provider-cidaas/tree/master/examples/resources/cidaas_notification_template_type).
+- Notification-srv: [Notification service (notification-srv)](notification_srv.md), [Migration: Template group locale copy](migration-notifications-template-group-locales.md).

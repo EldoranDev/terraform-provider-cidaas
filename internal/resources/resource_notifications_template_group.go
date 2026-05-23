@@ -66,8 +66,8 @@ var commSettingChannelAttrs = map[string]schema.Attribute{
 var notificationsTemplateGroupSchema = schema.Schema{
 	MarkdownDescription: "Manages a **template group** via **notification-srv** (`/notifications-srv/templategroups`). " +
 		"This is separate from `cidaas_template_group` (legacy `templates-srv/groups`) and does not replace it.\n\n" +
-		"Creating a group typically **copies templates** from a source group (default `default` when `copy` is omitted). " +
-		"Configure `copy_from_group_id` / `copy_locale_mappings` to control copying.\n\n" +
+		"Template **locales** are managed with **`cidaas_notifications_template_group_locale`** (copy on create, bulk-delete on destroy). " +
+		"Group create does not send `copy`; notification-srv may still seed locales from `default` per API rules.\n\n" +
 		"**Scopes:** `cidaas:templates_read`, `cidaas:templates_write`, `cidaas:templates_delete` (and admin roles as enforced by notification-srv).",
 	Attributes: map[string]schema.Attribute{
 		"id": schema.StringAttribute{
@@ -114,20 +114,6 @@ var notificationsTemplateGroupSchema = schema.Schema{
 			Default:             stringdefault.StaticString("client"),
 			MarkdownDescription: "Object owner, e.g. `client`.",
 		},
-		"copy_from_group_id": schema.StringAttribute{
-			Optional:            true,
-			MarkdownDescription: "Source group id for template copy on create/update. If omitted with no locale mappings, the API defaults to `default`.",
-		},
-		"copy_locale_mappings": schema.ListNestedAttribute{
-			Optional:            true,
-			MarkdownDescription: "Locale remap pairs `{from, to}` when copying (e.g. add locales). `copy_from_group_id` should be set to the source group (often `default`).",
-			NestedObject: schema.NestedAttributeObject{
-				Attributes: map[string]schema.Attribute{
-					"from": schema.StringAttribute{Required: true},
-					"to":   schema.StringAttribute{Required: true},
-				},
-			},
-		},
 		"comm_setting_email": schema.SingleNestedAttribute{
 			Optional: true,
 			MarkdownDescription: "EMAIL `commSettings` entry. On **update**, other channels are merged from the existing group; you may set only the channels you change. " +
@@ -158,10 +144,8 @@ type notificationsTemplateGroupModel struct {
 	TGType             types.String `tfsdk:"tg_type"`
 	Description        types.String `tfsdk:"description"`
 	DefaultLocale      types.String `tfsdk:"default_locale"`
-	Owner              types.String `tfsdk:"owner"`
-	CopyFromGroupID    types.String `tfsdk:"copy_from_group_id"`
-	CopyLocaleMappings types.List   `tfsdk:"copy_locale_mappings"`
-	CommSettingEmail   types.Object `tfsdk:"comm_setting_email"`
+	Owner            types.String `tfsdk:"owner"`
+	CommSettingEmail types.Object `tfsdk:"comm_setting_email"`
 	CommSettingSMS     types.Object `tfsdk:"comm_setting_sms"`
 	CommSettingIVR     types.Object `tfsdk:"comm_setting_ivr"`
 	CommSettingPush    types.Object `tfsdk:"comm_setting_push"`
@@ -173,11 +157,6 @@ type commSettingModel struct {
 	SenderAddress      types.String `tfsdk:"sender_address"`
 	ReplyTo            types.String `tfsdk:"reply_to"`
 	HasRemoteTemplates types.Bool   `tfsdk:"has_remote_templates"`
-}
-
-type localeMappingModel struct {
-	From types.String `tfsdk:"from"`
-	To   types.String `tfsdk:"to"`
 }
 
 func (r *NotificationsTemplateGroupResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
@@ -294,28 +273,6 @@ func buildNotificationsTemplateGroupRequest(ctx context.Context, m notifications
 		req.CommSettings = comm
 	}
 
-	needCopy := !m.CopyFromGroupID.IsNull() && m.CopyFromGroupID.ValueString() != ""
-	var locales []cidaas.NotificationsSrvLocaleMapping
-	if !m.CopyLocaleMappings.IsNull() && !m.CopyLocaleMappings.IsUnknown() {
-		var elems []localeMappingModel
-		diags.Append(m.CopyLocaleMappings.ElementsAs(ctx, &elems, false)...)
-		for _, e := range elems {
-			locales = append(locales, cidaas.NotificationsSrvLocaleMapping{
-				From: e.From.ValueString(),
-				To:   e.To.ValueString(),
-			})
-		}
-		if len(locales) > 0 {
-			needCopy = true
-		}
-	}
-	if needCopy {
-		req.Copy = &cidaas.NotificationsSrvCopy{Locale: locales}
-		if !m.CopyFromGroupID.IsNull() && m.CopyFromGroupID.ValueString() != "" {
-			req.Copy.FromGroupID = m.CopyFromGroupID.ValueString()
-		}
-	}
-
 	return req, diags
 }
 
@@ -376,9 +333,6 @@ func notificationsDataToModel(data *cidaas.NotificationsSrvTemplateGroupData, cf
 		DefaultLocale: util.StringValueOrNull(&data.DefaultLocale),
 		Owner:         util.StringValueOrNull(&data.Owner),
 	}
-	// Preserve config-only copy attributes from prior state / plan
-	m.CopyFromGroupID = cfg.CopyFromGroupID
-	m.CopyLocaleMappings = cfg.CopyLocaleMappings
 
 	if data.CommSettings != nil {
 		// JSON uses lowercase map keys (e.g. "email"); older code used "EMAIL" and never matched → null state / inconsistent apply.
