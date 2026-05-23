@@ -1,5 +1,21 @@
 ## Changelog
 
+### 3.5.14
+
+#### Breaking changes
+
+- **`cidaas_notifications_template_group`:** Removed **`copy_from_group_id`** and **`copy_locale_mappings`**. Locale copy and per-locale template deletion are handled by **`cidaas_notifications_template_group_locale`**. Group create no longer sends API `copy` (notification-srv may still seed locales from `default` per server rules).
+
+**Upgrade steps:**
+
+1. Remove **`copy_from_group_id`** and **`copy_locale_mappings`** from every `cidaas_notifications_template_group` block.
+2. Add one **`cidaas_notifications_template_group_locale`** per locale (see [Migration: Template group locale copy](docs/guides/migration-notifications-template-group-locales.md)).
+3. Set **`tg_type`** to match usage: **`cidaas`** for platform groups; **`developer`** for groups used with **`cidaas_notification_template`** / custom template types; **`reminder`** for reminder groups.
+4. If templates already exist, **import** locale resources: `terraform import cidaas_notifications_template_group_locale.<name> <group_id>/<locale>`.
+
+#### Enhancements
+
+- **`cidaas_notifications_template_group_locale`:** New resource. **Create** copies one locale (`PUT` with `copy.locale[]`); **Read** checks `GET …/templatefilters`; **Destroy** bulk-deletes templates for that locale (blocked when `locale` equals the group's **`default_locale`** until you change **`default_locale`** on the group). **Import** id: `{group_id}/{locale}`. Extra API locales without a locale resource are not auto-removed.
 ### 3.5.13
 
 #### Enhancements
@@ -11,6 +27,7 @@
 
 #### Enhancements
 
+- **cidaas_app:** Optional `allowed_native_clients` (set of client IDs) for the session transfer flow: web clients can list native app `client_id` values whose STTs are accepted. Maps to API field `allowed_native_clients` on `apps-srv/clients`.
 - **All managed resources:** On refresh, if the remote object was deleted outside Terraform (e.g. HTTP **404** or equivalent not-found from the API), **Read** now removes the instance from state instead of failing the plan. The next apply can recreate the resource. Data sources are unchanged (they still error when the lookup fails).
 
 

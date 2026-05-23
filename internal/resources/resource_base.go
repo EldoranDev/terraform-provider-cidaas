@@ -26,7 +26,8 @@ const (
 	RESOURCE_SCOPE                        = "cidaas_scope"                        // nolint:stylecheck
 	RESOURCE_SOCIAL_PROVIDER              = "cidaas_social_provider"              // nolint:stylecheck
 	RESOURCE_TEMPLATE_GROUP               = "cidaas_template_group"               // nolint:stylecheck
-	RESOURCE_NOTIFICATIONS_TEMPLATE_GROUP = "cidaas_notifications_template_group" // nolint:stylecheck
+	RESOURCE_NOTIFICATIONS_TEMPLATE_GROUP       = "cidaas_notifications_template_group"        // nolint:stylecheck
+	RESOURCE_NOTIFICATIONS_TEMPLATE_GROUP_LOCALE = "cidaas_notifications_template_group_locale" // nolint:stylecheck
 	RESOURCE_TEMPLATE                     = "cidaas_template"                     // nolint:stylecheck
 	RESOURCE_NOTIFICATION_TEMPLATE_TYPE   = "cidaas_notification_template_type"   // nolint:stylecheck
 	RESOURCE_NOTIFICATION_TEMPLATE        = "cidaas_notification_template"        // nolint:stylecheck
