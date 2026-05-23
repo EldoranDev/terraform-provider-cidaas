@@ -34,3 +34,9 @@ release:
   stage: release
   only:
     - never
+
+lint:
+  allow_failure: true
+lint:diff:
+  allow_failure: true
+

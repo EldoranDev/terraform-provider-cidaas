@@ -18,7 +18,6 @@ import (
 
 const (
 	apiKey         = "APIKEY"
-	url            = "https://cidaas.de/webhook-srv/webhook"
 	apiConfigKey   = "api-key"
 	apiPlaceholder = "key"
 	apiPlacement   = "query"
@@ -27,6 +26,12 @@ const (
 )
 
 var events = []string{"ACCOUNT_MODIFIED"}
+
+// testWebhookURL returns a unique webhook URL so parallel acceptance tests do not
+// conflict on the API uniqueness constraint (url + events).
+func testWebhookURL(unique string) string {
+	return fmt.Sprintf("https://cidaas.de/webhook-srv/webhook/%s", unique)
+}
 
 func getDefaultAPIKeyConfig() map[string]string {
 	return map[string]string{
@@ -38,7 +43,9 @@ func getDefaultAPIKeyConfig() map[string]string {
 
 func TestAccWebhookResource_Basic(t *testing.T) {
 	t.Parallel()
-	updatedURL := "https://cidaas.de/webhook-srv/v2/webhook"
+	urlSuffix := acctest.RandString(10)
+	initialURL := testWebhookURL(urlSuffix)
+	updatedURL := fmt.Sprintf("https://cidaas.de/webhook-srv/v2/webhook/%s", urlSuffix)
 
 	testResourceID := acctest.RandString(10)
 	testResourceName := fmt.Sprintf("%s.%s", resources.RESOURCE_WEBHOOK, testResourceID)
@@ -49,10 +56,10 @@ func TestAccWebhookResource_Basic(t *testing.T) {
 		CheckDestroy:             testCheckWebhookDestroyed(testResourceName),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccWebhookResourceConfig(apiKey, url, testResourceID, events, getDefaultAPIKeyConfig()),
+				Config: testAccWebhookResourceConfig(apiKey, initialURL, testResourceID, events, getDefaultAPIKeyConfig()),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(testResourceName, "auth_type", apiKey),
-					resource.TestCheckResourceAttr(testResourceName, "url", url),
+					resource.TestCheckResourceAttr(testResourceName, "url", initialURL),
 					resource.TestCheckResourceAttr(testResourceName, "events.0", "ACCOUNT_MODIFIED"),
 					resource.TestCheckResourceAttrSet(testResourceName, "id"),
 					resource.TestCheckResourceAttrSet(testResourceName, "disable"),
@@ -160,21 +167,22 @@ func TestAccWebhookResource_InvalidAllowedValue(t *testing.T) {
 	localApiKeyConfig["placement"] = "body"
 
 	testResourceID := acctest.RandString(10)
+	testURL := testWebhookURL(acctest.RandString(10))
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config:      testAccWebhookResourceConfig(invalidAuthType, url, testResourceID, events, localApiKeyConfig),
+				Config:      testAccWebhookResourceConfig(invalidAuthType, testURL, testResourceID, events, localApiKeyConfig),
 				ExpectError: regexp.MustCompile(`Attribute auth_type value must be one of: \["APIKEY" "TOTP" "CIDAAS_OAUTH2"\]`),
 			},
 			{
-				Config:      testAccWebhookResourceConfig(apiKey, url, testResourceID, invalidEvents, localApiKeyConfig),
+				Config:      testAccWebhookResourceConfig(apiKey, testURL, testResourceID, invalidEvents, localApiKeyConfig),
 				ExpectError: regexp.MustCompile(`value must be one of`), // TODO: full error msg match
 			},
 			{
-				Config:      testAccWebhookResourceConfig(apiKey, url, testResourceID, events, localApiKeyConfig),
+				Config:      testAccWebhookResourceConfig(apiKey, testURL, testResourceID, events, localApiKeyConfig),
 				ExpectError: regexp.MustCompile(`placement value must be one of: \["query" "header"\]`),
 			},
 		},
@@ -186,6 +194,7 @@ func TestAccWebhookResource_PlaceholderLowercase(t *testing.T) {
 	t.Parallel()
 	invalidPlaceholders := []string{"apiKey", "APIKEY", "api_KEY"}
 	testResourceID := acctest.RandString(10)
+	testURL := testWebhookURL(acctest.RandString(10))
 
 	for _, v := range invalidPlaceholders {
 		localApiKeyConfig := getDefaultAPIKeyConfig()
@@ -195,7 +204,7 @@ func TestAccWebhookResource_PlaceholderLowercase(t *testing.T) {
 			ProtoV6ProviderFactories: acctest.TestAccProtoV6ProviderFactories,
 			Steps: []resource.TestStep{
 				{
-					Config:      testAccWebhookResourceConfig(apiKey, url, testResourceID, events, localApiKeyConfig),
+					Config:      testAccWebhookResourceConfig(apiKey, testURL, testResourceID, events, localApiKeyConfig),
 					ExpectError: regexp.MustCompile(`Attribute apikey_config.placeholder must contain only lowercase alphabets`),
 				},
 			},
@@ -207,17 +216,18 @@ func TestAccWebhookResource_PlaceholderLowercase(t *testing.T) {
 func TestAccWebhookResource_InvalidAuthType(t *testing.T) {
 	t.Parallel()
 	testResourceID := acctest.RandString(10)
+	testURL := testWebhookURL(acctest.RandString(10))
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config:      testAccWebhookResourceConfig(totp, url, testResourceID, events, getDefaultAPIKeyConfig()),
+				Config:      testAccWebhookResourceConfig(totp, testURL, testResourceID, events, getDefaultAPIKeyConfig()),
 				ExpectError: regexp.MustCompile(`The attribute totp_config cannot be empty when the auth_type is TOTP`),
 			},
 			{
-				Config:      testAccWebhookResourceConfig(oauth2, url, testResourceID, events, getDefaultAPIKeyConfig()),
+				Config:      testAccWebhookResourceConfig(oauth2, testURL, testResourceID, events, getDefaultAPIKeyConfig()),
 				ExpectError: regexp.MustCompile(`The attribute cidaas_auth_config cannot be empty when the auth_type is`), // TODO: fix why full string match not working
 			},
 			{
@@ -227,7 +237,7 @@ func TestAccWebhookResource_InvalidAuthType(t *testing.T) {
 				}
 				resource "cidaas_webhook" "%s" {
 					auth_type = "APIKEY"
-					url = "https://cidaas.de/webhook-srv/webhook"
+					url = "%s"
 					events = ["ACCOUNT_MODIFIED"]
 					totp_config = {
 						key = "api-key"
@@ -235,7 +245,7 @@ func TestAccWebhookResource_InvalidAuthType(t *testing.T) {
 						placement = "query"
 					}
 				}
-			`, acctest.GetBaseURL(), testResourceID),
+			`, acctest.GetBaseURL(), testResourceID, testURL),
 				ExpectError: regexp.MustCompile(`The attribute apikey_config cannot be empty when the auth_type is APIKEY`),
 			},
 		},
@@ -247,25 +257,27 @@ func TestAccWebhookResource_SwitchAuthType(t *testing.T) {
 	t.Parallel()
 	testResourceID := acctest.RandString(10)
 	testResourceName := fmt.Sprintf("%s.%s", resources.RESOURCE_WEBHOOK, testResourceID)
+	testURL := testWebhookURL(acctest.RandString(10))
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testCheckWebhookDestroyed(testResourceName),
 		Steps: []resource.TestStep{
 			{
-				Config: webhookResouceFullConfig(apiKey, testResourceID),
+				Config: webhookResouceFullConfig(apiKey, testResourceID, testURL),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(testResourceName, "auth_type", apiKey),
 				),
 			},
 			{
-				Config: webhookResouceFullConfig(totp, testResourceID),
+				Config: webhookResouceFullConfig(totp, testResourceID, testURL),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(testResourceName, "auth_type", totp),
 				),
 			},
 			{
-				Config: webhookResouceFullConfig(oauth2, testResourceID),
+				Config: webhookResouceFullConfig(oauth2, testResourceID, testURL),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(testResourceName, "auth_type", oauth2),
 				),
@@ -274,14 +286,14 @@ func TestAccWebhookResource_SwitchAuthType(t *testing.T) {
 	})
 }
 
-func webhookResouceFullConfig(authType, resourceID string) string {
+func webhookResouceFullConfig(authType, resourceID, url string) string {
 	return fmt.Sprintf(`
 		provider "cidaas" {
 			base_url = "%s"
 		}
 		resource "cidaas_webhook" "%s" {
 			auth_type = "%s"
-			url = "https://cidaas.de/webhook-srv/webhook"
+			url = "%s"
 			events = ["ACCOUNT_MODIFIED"]
 			apikey_config = {
 				key = "api-key"
@@ -296,5 +308,5 @@ func webhookResouceFullConfig(authType, resourceID string) string {
 			cidaas_auth_config = {
 				client_id = "ce90d6ba-9a5a-49b6-9a50"
 			}
-		}`, acctest.GetBaseURL(), resourceID, authType)
+		}`, acctest.GetBaseURL(), resourceID, authType, url)
 }
