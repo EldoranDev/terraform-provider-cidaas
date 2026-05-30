@@ -4,7 +4,7 @@ page_title: "cidaas_notifications_template_group Resource - cidaas"
 subcategory: ""
 description: |-
   Manages a template group via notification-srv (/notifications-srv/templategroups). This is separate from cidaas_template_group (legacy templates-srv/groups) and does not replace it.
-  Creating a group typically copies templates from a source group (default default when copy is omitted). Configure copy_from_group_id / copy_locale_mappings to control copying.
+  Template locales are managed with cidaas_notifications_template_group_locale (copy on create, bulk-delete on destroy). Group create does not send copy; notification-srv may still seed locales from default per API rules.
   Scopes: cidaas:templates_read, cidaas:templates_write, cidaas:templates_delete (and admin roles as enforced by notification-srv).
 ---
 
@@ -12,21 +12,20 @@ description: |-
 
 Manages a **template group** via **notification-srv** (`/notifications-srv/templategroups`). This is separate from `cidaas_template_group` (legacy `templates-srv/groups`) and does not replace it.
 
-Creating a group typically **copies templates** from a source group (default `default` when `copy` is omitted). Configure `copy_from_group_id` / `copy_locale_mappings` to control copying.
+Template **locales** are managed with **`cidaas_notifications_template_group_locale`** (copy on create, bulk-delete on destroy). Group create does not send `copy`; notification-srv may still seed locales from `default` per API rules.
 
 **Scopes:** `cidaas:templates_read`, `cidaas:templates_write`, `cidaas:templates_delete` (and admin roles as enforced by notification-srv).
 
 ## Example Usage
 
 ```terraform
-# Example: notification-srv template group (not legacy cidaas_template_group).
-# Creating a group usually copies templates from a source group (default: "default").
+# Example: notification-srv template group (metadata only).
+# Locales: use cidaas_notifications_template_group_locale (see ../cidaas_notifications_template_group_locale/resource.tf).
 resource "cidaas_notifications_template_group" "example_dev" {
-  group_id           = "example_dev_group"
-  tg_type            = "developer"
-  description        = "Example developer template group created with Terraform (min 10 chars)."
-  default_locale     = "en"
-  copy_from_group_id = "default"
+  group_id       = "example_dev_group"
+  tg_type        = "developer"
+  description    = "Example developer template group created with Terraform (min 10 chars)."
+  default_locale = "en"
 }
 ```
 
@@ -38,7 +37,7 @@ resource "cidaas_notifications_template_group" "example_dev" {
 - `default_locale` (String) Default locale (BCP47), e.g. `en`, `de`.
 - `description` (String) Description (10–600 characters per notification-srv validation).
 - `group_id` (String) Template group id (`_id`). Immutable after create.
-- `tg_type` (String) Template group type: `cidaas`, `developer`, or `reminder`.
+- `tg_type` (String) Template group type: `cidaas`, `developer`, or `reminder`. `cidaas` — standard Cidaas platform emails (e.g. welcome, password reset). `developer` — custom emails you design, trigger (e.g. from a flow), and fill with your payload. `reminder` — scheduled follow-up when a user delays an action (e.g. email verification).
 
 ### Optional
 
@@ -46,10 +45,7 @@ resource "cidaas_notifications_template_group" "example_dev" {
 - `comm_setting_ivr` (Attributes) IVR `commSettings` entry. (see [below for nested schema](#nestedatt--comm_setting_ivr))
 - `comm_setting_push` (Attributes) PUSH `commSettings` entry. (see [below for nested schema](#nestedatt--comm_setting_push))
 - `comm_setting_sms` (Attributes) SMS `commSettings` entry. (see [below for nested schema](#nestedatt--comm_setting_sms))
-- `copy_from_group_id` (String) Source group id for template copy on create/update. If omitted with no locale mappings, the API defaults to `default`.
-- `copy_locale_mappings` (Attributes List) Locale remap pairs `{from, to}` when copying (e.g. add locales). `copy_from_group_id` should be set to the source group (often `default`). (see [below for nested schema](#nestedatt--copy_locale_mappings))
 - `owner` (String) Object owner, e.g. `client`.
-- `user_group_ids` (Set of String) Optional user group ids restricting access.
 
 ### Read-Only
 
@@ -101,12 +97,3 @@ Optional:
 - `sender_address` (String) Optional sender address (e.g. email from / SMS originator).
 - `sender_name` (String) Optional sender display name for this channel.
 - `service_setup_id` (String) Service setup (communication provider) id from notification-srv / tenant configuration.
-
-
-<a id="nestedatt--copy_locale_mappings"></a>
-### Nested Schema for `copy_locale_mappings`
-
-Required:
-
-- `from` (String)
-- `to` (String)

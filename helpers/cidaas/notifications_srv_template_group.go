@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strings"
 
 	"github.com/Cidaas/terraform-provider-cidaas/helpers/util"
 )
@@ -246,4 +247,48 @@ func (t *NotificationsSrvTemplateGroup) GetTemplateFilters(ctx context.Context, 
 		return nil, fmt.Errorf("notification-srv templatefilters unsuccessful: %s", string(bodyBytes))
 	}
 	return env.Data, nil
+}
+
+// NotificationsSrvTemplateFiltersData is the `data` object from GET templategroups/:id/templatefilters.
+type NotificationsSrvTemplateFiltersData struct {
+	Locales []string `json:"locales"`
+}
+
+// ParseTemplateFiltersLocales unmarshals templatefilters `data` and returns locale codes.
+func ParseTemplateFiltersLocales(raw json.RawMessage) ([]string, error) {
+	if len(raw) == 0 {
+		return nil, nil
+	}
+	var data NotificationsSrvTemplateFiltersData
+	if err := json.Unmarshal(raw, &data); err != nil {
+		return nil, fmt.Errorf("failed to parse templatefilters data: %w", err)
+	}
+	return data.Locales, nil
+}
+
+// ListTemplateFiltersLocales GET …/templategroups/:id/templatefilters and returns locale codes.
+func (t *NotificationsSrvTemplateGroup) ListTemplateFiltersLocales(ctx context.Context, groupID string) ([]string, error) {
+	raw, err := t.GetTemplateFilters(ctx, groupID)
+	if err != nil {
+		return nil, err
+	}
+	return ParseTemplateFiltersLocales(raw)
+}
+
+// CopyLocales PUT …/templategroups/:id with copy.locale[] to seed templates for target locales.
+func (t *NotificationsSrvTemplateGroup) CopyLocales(ctx context.Context, groupID string, copy NotificationsSrvCopy) error {
+	_, err := t.Update(ctx, groupID, NotificationsSrvTemplateGroupRequest{
+		ID:   groupID,
+		Copy: &copy,
+	})
+	return err
+}
+
+// IsNotificationSrvTemplatesAlreadyExistError reports API errors when templates already exist for target locales.
+func IsNotificationSrvTemplatesAlreadyExistError(err error) bool {
+	if err == nil {
+		return false
+	}
+	msg := strings.ToLower(err.Error())
+	return strings.Contains(msg, "already templates found") || strings.Contains(msg, "already template")
 }
