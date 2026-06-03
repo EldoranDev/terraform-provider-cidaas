@@ -6,6 +6,7 @@ description: |-
   Social login providers enable users to authenticate using their existing accounts from popular social platforms such as Google, Facebook, LinkedIn and others.
   Ensure that the below scopes are assigned to the client:
   cidaas:providers_readcidaas:providers_writecidaas:providers_delete
+  -> Note: Write-Only argument client_secret_wo is available to use in place of client_secret. Write-only arguments are supported in HashiCorp Terraform 1.11.0 and later. Learn more https://developer.hashicorp.com/terraform/language/resources/ephemeral#write-only-arguments.
 ---
 
 # cidaas_social_provider (Resource)
@@ -18,15 +19,29 @@ The `cidaas_social_provider` resource allows you to configure and manage social 
 - cidaas:providers_write
 - cidaas:providers_delete
 
+-> **Note:** Write-Only argument `client_secret_wo` is available to use in place of `client_secret`. Write-only arguments are supported in HashiCorp Terraform 1.11.0 and later. [Learn more](https://developer.hashicorp.com/terraform/language/resources/ephemeral#write-only-arguments).
+
 ## Example Usage
 
 ```terraform
+variable "google_client_secret" {
+  type      = string
+  sensitive = true
+  ephemeral = true
+}
+
 resource "cidaas_social_provider" "sample" {
-  name                     = "Sample Social Provider"
-  provider_name            = "google"
-  enabled                  = true
-  client_id                = "8d789b3d-b312"
-  client_secret            = "96ae-ea2e8d8e6708"
+  name          = "Sample Social Provider"
+  provider_name = "google"
+  enabled       = true
+  client_id     = "8d789b3d-b312"
+
+  # Write-Only: not stored in plan or state. Increment client_secret_wo_version to trigger an update.
+  client_secret_wo         = var.google_client_secret
+  client_secret_wo_version = "1"
+
+  # Alternative: client_secret = "96ae-ea2e8d8e6708" (stored in the state file).
+
   scopes                   = ["profile", "email"]
   enabled_for_admin_portal = true
   claims = {
@@ -79,13 +94,17 @@ resource "cidaas_app" "app_sample" {
 ### Required
 
 - `client_id` (String) The client ID provided by the social provider. This is used to authenticate your application with the social provider.
-- `client_secret` (String, Sensitive) The client secret provided by the social provider. This is used alongside the client ID to authenticate your application with the social provider.
 - `name` (String) The name of the social provider configuration. This should be unique within your cidaas environment.
 - `provider_name` (String) The name of the social provider. Supported values include `google`, `facebook`, `linkedin` etc.
 
 ### Optional
 
+> **NOTE**: [Write-only arguments](https://developer.hashicorp.com/terraform/language/resources/ephemeral#write-only-arguments) are supported in Terraform 1.11 and later.
+
 - `claims` (Attributes) A map defining required and optional claims to be requested from the social provider. (see [below for nested schema](#nestedatt--claims))
+- `client_secret` (String, Sensitive) The client secret provided by the social provider. Exactly one of `client_secret` or `client_secret_wo` must be set. Note that this will be stored in the state file.
+- `client_secret_wo` (String, Sensitive, [Write-only](https://developer.hashicorp.com/terraform/language/resources/ephemeral#write-only-arguments)) Write-Only equivalent of `client_secret`. The value is sent to cidaas on create and update but is not stored in plan or state. Must be set together with `client_secret_wo_version`. Write-only arguments are supported in HashiCorp Terraform 1.11.0 and later.
+- `client_secret_wo_version` (String) Used together with `client_secret_wo` to trigger an update. Increment this value when an update to `client_secret_wo` is required.
 - `enabled` (Boolean) A flag to enable or disable the social provider configuration. Set to `true` to enable and `false` to disable.
 - `enabled_for_admin_portal` (Boolean) A flag to enable or disable the social provider for the admin portal. Set to `true` to enable and `false` to disable.
 - `scopes` (Set of String) A list of scopes of the social provider.

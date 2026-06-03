@@ -5,6 +5,7 @@ description: |-
   This example demonstrates the configuration of a custom provider resource for interacting with cidaas.
   Ensure that the below scopes are assigned to the client with the specified client_id:
   cidaas:providers_readcidaas:providers_writecidaas:providers_delete
+  -> Note: Write-Only argument client_secret_wo is available to use in place of client_secret. Write-only arguments are supported in HashiCorp Terraform 1.11.0 and later. Learn more https://developer.hashicorp.com/terraform/language/resources/ephemeral#write-only-arguments.
 ---
 
 # cidaas_custom_provider (Resource)
@@ -16,10 +17,18 @@ This example demonstrates the configuration of a custom provider resource for in
 - cidaas:providers_write
 - cidaas:providers_delete
 
+-> **Note:** Write-Only argument `client_secret_wo` is available to use in place of `client_secret`. Write-only arguments are supported in HashiCorp Terraform 1.11.0 and later. [Learn more](https://developer.hashicorp.com/terraform/language/resources/ephemeral#write-only-arguments).
+
 
 ## Example Usage
 
 ```terraform
+variable "custom_provider_client_secret" {
+  type      = string
+  sensitive = true
+  ephemeral = true
+}
+
 resource "cidaas_custom_provider" "sample" {
   standard_type          = "OAUTH2"
   authorization_endpoint = "https://cidaas.de/authz-srv/authz"
@@ -30,8 +39,14 @@ resource "cidaas_custom_provider" "sample" {
   userinfo_endpoint      = "https://cidaas.de/users-srv/userinfo"
   scope_display_label    = "terraform sample scope display name"
   client_id              = "acb-4a6b-9777-8a64abe6af"
-  client_secret          = "zcb-4a6b-9777-8a64abe6ay"
-  domains                = ["cidaas.de", "cidaas.org"]
+
+  # Write-Only: not stored in plan or state. Increment client_secret_wo_version to trigger an update.
+  client_secret_wo         = var.custom_provider_client_secret
+  client_secret_wo_version = "1"
+
+  # Alternative: client_secret = "zcb-4a6b-9777-8a64abe6ay" (stored in the state file).
+
+  domains = ["cidaas.de", "cidaas.org"]
 
   scopes = [
     {
@@ -80,7 +95,6 @@ resource "cidaas_custom_provider" "sample" {
 
 - `authorization_endpoint` (String) The URL for authorization of the provider.
 - `client_id` (String) The client ID of the provider.
-- `client_secret` (String, Sensitive) The client secret of the provider.
 - `display_name` (String) The display name of the provider.
 - `provider_name` (String) The unique identifier of the custom provider. This cannot be updated for an existing state.
 - `token_endpoint` (String) The URL to generate token with this provider.
@@ -88,10 +102,15 @@ resource "cidaas_custom_provider" "sample" {
 
 ### Optional
 
+> **NOTE**: [Write-only arguments](https://developer.hashicorp.com/terraform/language/resources/ephemeral#write-only-arguments) are supported in Terraform 1.11 and later.
+
 - `amr_config` (Attributes List) AMR configuration mapping. (see [below for nested schema](#nestedatt--amr_config))
 - `apikey_details` (Attributes) Configuration for API key-based authentication. It's a **required** parameter when the auth_type is APIKEY. (see [below for nested schema](#nestedatt--apikey_details))
 - `auth_type` (String) Type of authentication. Allowed values `APIKEY`, `CIDAAS_OAUTH2` and `TOTP`.
 - `cidaas_auth_details` (Attributes) Configuration for cidaas authentication. It's a **required** parameter when the auth_type is CIDAAS_OAUTH2. (see [below for nested schema](#nestedatt--cidaas_auth_details))
+- `client_secret` (String, Sensitive) The client secret of the provider. Exactly one of `client_secret` or `client_secret_wo` must be set. Note that this will be stored in the state file.
+- `client_secret_wo` (String, Sensitive, [Write-only](https://developer.hashicorp.com/terraform/language/resources/ephemeral#write-only-arguments)) Write-Only equivalent of `client_secret`. The value is sent to cidaas on create and update but is not stored in plan or state. Must be set together with `client_secret_wo_version`. Write-only arguments are supported in HashiCorp Terraform 1.11.0 and later.
+- `client_secret_wo_version` (String) Used together with `client_secret_wo` to trigger an update. Increment this value when an update to `client_secret_wo` is required.
 - `domains` (Set of String) The domains of the provider.
 - `logo_url` (String) The URL for the provider's logo.
 - `pkce` (Boolean) The flag to enable or disable pkce flow. By default, the value is set to `false`

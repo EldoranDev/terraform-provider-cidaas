@@ -8,6 +8,7 @@ import (
 	"github.com/Cidaas/terraform-provider-cidaas/helpers/cidaas"
 	"github.com/Cidaas/terraform-provider-cidaas/helpers/util"
 	"github.com/Cidaas/terraform-provider-cidaas/internal/validators"
+	"github.com/hashicorp/terraform-plugin-framework-validators/resourcevalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -47,6 +48,8 @@ type ProviderConfig struct {
 	StandardType          types.String `tfsdk:"standard_type"`
 	ClientID              types.String `tfsdk:"client_id"`
 	ClientSecret          types.String `tfsdk:"client_secret"`
+	ClientSecretWO        types.String `tfsdk:"client_secret_wo"`
+	ClientSecretWOVersion types.String `tfsdk:"client_secret_wo_version"`
 	AuthorizationEndpoint types.String `tfsdk:"authorization_endpoint"`
 	TokenEndpoint         types.String `tfsdk:"token_endpoint"`
 	UserinfoEndpoint      types.String `tfsdk:"userinfo_endpoint"`
@@ -202,7 +205,10 @@ var customProviderSchema = schema.Schema{
 		"\n\n Ensure that the below scopes are assigned to the client with the specified `client_id`:" +
 		"\n- cidaas:providers_read" +
 		"\n- cidaas:providers_write" +
-		"\n- cidaas:providers_delete",
+		"\n- cidaas:providers_delete" +
+		"\n\n-> **Note:** Write-Only argument `client_secret_wo` is available to use in place of `client_secret`." +
+		" Write-only arguments are supported in HashiCorp Terraform 1.11.0 and later." +
+		" [Learn more](https://developer.hashicorp.com/terraform/language/resources/ephemeral#write-only-arguments).",
 	Attributes: map[string]schema.Attribute{
 		"id": schema.StringAttribute{
 			Computed:            true,
@@ -238,9 +244,19 @@ var customProviderSchema = schema.Schema{
 			MarkdownDescription: "The client ID of the provider.",
 		},
 		"client_secret": schema.StringAttribute{
-			Required:            true,
+			Optional:            true,
 			Sensitive:           true,
-			MarkdownDescription: "The client secret of the provider.",
+			MarkdownDescription: "The client secret of the provider. Exactly one of `client_secret` or `client_secret_wo` must be set. Note that this will be stored in the state file.",
+		},
+		"client_secret_wo": schema.StringAttribute{
+			Optional:            true,
+			Sensitive:           true,
+			WriteOnly:           true,
+			MarkdownDescription: "Write-Only equivalent of `client_secret`. The value is sent to cidaas on create and update but is not stored in plan or state. Must be set together with `client_secret_wo_version`. Write-only arguments are supported in HashiCorp Terraform 1.11.0 and later.",
+		},
+		"client_secret_wo_version": schema.StringAttribute{
+			Optional:            true,
+			MarkdownDescription: "Used together with `client_secret_wo` to trigger an update. Increment this value when an update to `client_secret_wo` is required.",
 		},
 		"authorization_endpoint": schema.StringAttribute{
 			Required:            true,
@@ -448,9 +464,27 @@ var customProviderSchema = schema.Schema{
 	},
 }
 
+func (r *CustomProvider) ConfigValidators(_ context.Context) []resource.ConfigValidator {
+	return []resource.ConfigValidator{
+		resourcevalidator.ExactlyOneOf(
+			path.MatchRoot("client_secret"),
+			path.MatchRoot("client_secret_wo"),
+		),
+		resourcevalidator.RequiredTogether(
+			path.MatchRoot("client_secret_wo"),
+			path.MatchRoot("client_secret_wo_version"),
+		),
+		resourcevalidator.PreferWriteOnlyAttribute(
+			path.MatchRoot("client_secret"),
+			path.MatchRoot("client_secret_wo"),
+		),
+	}
+}
+
 func (r *CustomProvider) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var plan ProviderConfig
+	var plan, config ProviderConfig
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
 	resp.Diagnostics.Append(plan.extract(ctx)...)
 	cp, d := prepareCpRequestPayload(ctx, plan)
 	resp.Diagnostics.Append(d...)
@@ -459,6 +493,9 @@ func (r *CustomProvider) Create(ctx context.Context, req resource.CreateRequest,
 			"errors": resp.Diagnostics.Errors(),
 		})
 		return
+	}
+	if !config.ClientSecretWO.IsNull() && !config.ClientSecretWO.IsUnknown() {
+		cp.ClientSecret = config.ClientSecretWO.ValueString()
 	}
 	res, err := r.cidaasClient.CustomProvider.CreateCustomProvider(ctx, cp)
 	if err != nil {
@@ -505,8 +542,13 @@ func (r *CustomProvider) Read(ctx context.Context, req resource.ReadRequest, res
 	state.UserinfoEndpoint = util.StringValueOrNull(&res.Data.UserinfoEndpoint)
 	state.ID = util.StringValueOrNull(&res.Data.ID)
 	state.ScopeDisplayLabel = util.StringValueOrNull(&res.Data.Scopes.DisplayLabel)
+	// Import is detected by ClientID being null (only provider_name is set by ImportState).
+	// Outside import, leave state.ClientSecret null when client_secret_wo is in use.
+	isImport := state.ClientID.IsNull()
 	state.ClientID = util.StringValueOrNull(&res.Data.ClientID)
-	state.ClientSecret = util.StringValueOrNull(&res.Data.ClientSecret)
+	if !state.ClientSecret.IsNull() || isImport {
+		state.ClientSecret = util.StringValueOrNull(&res.Data.ClientSecret)
+	}
 	state.Domains = util.SetValueOrNull(res.Data.Domains)
 	state.Pkce = types.BoolValue(res.Data.Pkce)
 	state.AuthType = util.StringValueOrNull(&res.Data.AuthType)
@@ -721,10 +763,11 @@ func (r *CustomProvider) Read(ctx context.Context, req resource.ReadRequest, res
 }
 
 func (r *CustomProvider) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var plan, state ProviderConfig
+	var plan, state, config ProviderConfig
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
 	resp.Diagnostics.Append(plan.extract(ctx)...)
 	if resp.Diagnostics.HasError() {
 		tflog.Error(ctx, "Failed to get plan/state data or extract configurations", util.H{
@@ -740,6 +783,9 @@ func (r *CustomProvider) Update(ctx context.Context, req resource.UpdateRequest,
 			"errors": resp.Diagnostics.Errors(),
 		})
 		return
+	}
+	if !config.ClientSecretWO.IsNull() && !config.ClientSecretWO.IsUnknown() {
+		cp.ClientSecret = config.ClientSecretWO.ValueString()
 	}
 
 	cp.ID = state.ID.ValueString()

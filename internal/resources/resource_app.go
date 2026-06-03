@@ -6,6 +6,7 @@ import (
 
 	"github.com/Cidaas/terraform-provider-cidaas/helpers/cidaas"
 	"github.com/Cidaas/terraform-provider-cidaas/helpers/util"
+	"github.com/hashicorp/terraform-plugin-framework-validators/resourcevalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -25,6 +26,24 @@ func NewAppResource() resource.Resource {
 				Name:   RESOURCE_APP,
 				Schema: &resourceAppSchema,
 			},
+		),
+	}
+}
+
+func (r *AppResource) ConfigValidators(_ context.Context) []resource.ConfigValidator {
+	return []resource.ConfigValidator{
+		// Not ExactlyOneOf: client_secret is Computed, so omitting both enables cidaas auto-generation.
+		resourcevalidator.Conflicting(
+			path.MatchRoot("client_secret"),
+			path.MatchRoot("client_secret_wo"),
+		),
+		resourcevalidator.RequiredTogether(
+			path.MatchRoot("client_secret_wo"),
+			path.MatchRoot("client_secret_wo_version"),
+		),
+		resourcevalidator.PreferWriteOnlyAttribute(
+			path.MatchRoot("client_secret"),
+			path.MatchRoot("client_secret_wo"),
 		),
 	}
 }
@@ -70,8 +89,9 @@ func (r *AppResource) ValidateConfig(ctx context.Context, req resource.ValidateC
 }
 
 func (r *AppResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var plan AppConfig
+	var plan, config AppConfig
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
 	resp.Diagnostics.Append(plan.ExtractAppConfigs(ctx)...)
 	if resp.Diagnostics.HasError() {
 		tflog.Error(ctx, "failed to get plan data or extract app configurations", util.H{
@@ -90,6 +110,10 @@ func (r *AppResource) Create(ctx context.Context, req resource.CreateRequest, re
 		return
 	}
 	tflog.Debug(ctx, "successfully prepared app model")
+	usingWO := !config.ClientSecretWO.IsNull() && !config.ClientSecretWO.IsUnknown()
+	if usingWO {
+		appModel.ClientSecret = config.ClientSecretWO.ValueString()
+	}
 	res, err := r.cidaasClient.Apps.Create(ctx, *appModel)
 	if err != nil {
 		tflog.Error(ctx, "failed to create app via API", util.H{
@@ -104,7 +128,11 @@ func (r *AppResource) Create(ctx context.Context, req resource.CreateRequest, re
 
 	plan.ID = util.StringValueOrNull(&res.Data.ID)
 	plan.ClientID = util.StringValueOrNull(&res.Data.ClientID)
-	plan.ClientSecret = util.StringValueOrNull(&res.Data.ClientSecret)
+	if usingWO {
+		plan.ClientSecret = types.StringNull()
+	} else {
+		plan.ClientSecret = util.StringValueOrNull(&res.Data.ClientSecret)
+	}
 
 	// Set the updated state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
@@ -190,6 +218,10 @@ func (r *AppResource) Update(ctx context.Context, req resource.UpdateRequest, re
 		return
 	}
 	tflog.Debug(ctx, "successfully prepared app model for update")
+	usingWO := !config.ClientSecretWO.IsNull() && !config.ClientSecretWO.IsUnknown()
+	if usingWO {
+		appModel.ClientSecret = config.ClientSecretWO.ValueString()
+	}
 	appModel.ID = state.ID.ValueString()
 	_, err := r.cidaasClient.Apps.Update(ctx, *appModel)
 	if err != nil {
@@ -203,6 +235,11 @@ func (r *AppResource) Update(ctx context.Context, req resource.UpdateRequest, re
 	tflog.Info(ctx, "successfully updated app via API", util.H{
 		"client_id": state.ClientID.ValueString(),
 	})
+
+	if usingWO {
+		// Also clears any plaintext value left from a prior non-write-only apply.
+		plan.ClientSecret = types.StringNull()
+	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
@@ -250,7 +287,10 @@ func updateAppState(state *AppConfig, resp cidaas.AppResponse, isImport bool) {
 	data := resp.Data
 	state.ID = util.StringValueOrNull(&data.ID)
 	state.ClientID = util.StringValueOrNull(&data.ClientID)
-	state.ClientSecret = util.StringValueOrNull(&data.ClientSecret)
+	// A null state value signals client_secret_wo is in use — leave state null.
+	if !state.ClientSecret.IsNull() || isImport {
+		state.ClientSecret = util.StringValueOrNull(&data.ClientSecret)
+	}
 	state.ClientName = util.StringValueOrNull(&data.ClientName)
 	state.ClientType = util.StringValueOrNull(&data.ClientType)
 	state.CompanyName = util.StringValueOrNull(&data.CompanyName)

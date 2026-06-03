@@ -8,6 +8,7 @@ import (
 	"github.com/Cidaas/terraform-provider-cidaas/helpers/cidaas"
 	"github.com/Cidaas/terraform-provider-cidaas/helpers/util"
 	"github.com/Cidaas/terraform-provider-cidaas/internal/validators"
+	"github.com/hashicorp/terraform-plugin-framework-validators/resourcevalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -59,6 +60,8 @@ type SocialProviderConfig struct {
 	Enabled               types.Bool   `tfsdk:"enabled"`
 	ClientID              types.String `tfsdk:"client_id"`
 	ClientSecret          types.String `tfsdk:"client_secret"`
+	ClientSecretWO        types.String `tfsdk:"client_secret_wo"`
+	ClientSecretWOVersion types.String `tfsdk:"client_secret_wo_version"`
 	Claims                types.Object `tfsdk:"claims"`
 	EnabledForAdminPortal types.Bool   `tfsdk:"enabled_for_admin_portal"`
 	UserInfoFields        types.List   `tfsdk:"userinfo_fields"`
@@ -85,6 +88,23 @@ type UserInfoFields struct {
 	ExternalKey   types.String `tfsdk:"external_key"`
 	IsCustomField types.Bool   `tfsdk:"is_custom_field"`
 	IsSystemField types.Bool   `tfsdk:"is_system_field"`
+}
+
+func (r *SocialProvider) ConfigValidators(_ context.Context) []resource.ConfigValidator {
+	return []resource.ConfigValidator{
+		resourcevalidator.ExactlyOneOf(
+			path.MatchRoot("client_secret"),
+			path.MatchRoot("client_secret_wo"),
+		),
+		resourcevalidator.RequiredTogether(
+			path.MatchRoot("client_secret_wo"),
+			path.MatchRoot("client_secret_wo_version"),
+		),
+		resourcevalidator.PreferWriteOnlyAttribute(
+			path.MatchRoot("client_secret"),
+			path.MatchRoot("client_secret_wo"),
+		),
+	}
 }
 
 func (r *SocialProvider) ValidateConfig(ctx context.Context, req resource.ValidateConfigRequest, res *resource.ValidateConfigResponse) {
@@ -129,7 +149,10 @@ var socialProviderSchema = schema.Schema{
 		"\n\n Ensure that the below scopes are assigned to the client:" +
 		"\n- cidaas:providers_read" +
 		"\n- cidaas:providers_write" +
-		"\n- cidaas:providers_delete",
+		"\n- cidaas:providers_delete" +
+		"\n\n-> **Note:** Write-Only argument `client_secret_wo` is available to use in place of `client_secret`." +
+		" Write-only arguments are supported in HashiCorp Terraform 1.11.0 and later." +
+		" [Learn more](https://developer.hashicorp.com/terraform/language/resources/ephemeral#write-only-arguments).",
 	Attributes: map[string]schema.Attribute{
 		"id": schema.StringAttribute{
 			Computed: true,
@@ -166,9 +189,19 @@ var socialProviderSchema = schema.Schema{
 			MarkdownDescription: "The client ID provided by the social provider. This is used to authenticate your application with the social provider.",
 		},
 		"client_secret": schema.StringAttribute{
-			Required:            true,
+			Optional:            true,
 			Sensitive:           true,
-			MarkdownDescription: "The client secret provided by the social provider. This is used alongside the client ID to authenticate your application with the social provider.",
+			MarkdownDescription: "The client secret provided by the social provider. Exactly one of `client_secret` or `client_secret_wo` must be set. Note that this will be stored in the state file.",
+		},
+		"client_secret_wo": schema.StringAttribute{
+			Optional:            true,
+			Sensitive:           true,
+			WriteOnly:           true,
+			MarkdownDescription: "Write-Only equivalent of `client_secret`. The value is sent to cidaas on create and update but is not stored in plan or state. Must be set together with `client_secret_wo_version`. Write-only arguments are supported in HashiCorp Terraform 1.11.0 and later.",
+		},
+		"client_secret_wo_version": schema.StringAttribute{
+			Optional:            true,
+			MarkdownDescription: "Used together with `client_secret_wo` to trigger an update. Increment this value when an update to `client_secret_wo` is required.",
 		},
 		"scopes": schema.SetAttribute{
 			ElementType:         types.StringType,
@@ -285,8 +318,9 @@ var socialProviderSchema = schema.Schema{
 }
 
 func (r *SocialProvider) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var plan SocialProviderConfig
+	var plan, config SocialProviderConfig
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
 	resp.Diagnostics.Append(plan.extract(ctx)...)
 	if resp.Diagnostics.HasError() {
 		tflog.Error(ctx, "failed to get plan data or extract configurations", util.H{
@@ -302,6 +336,10 @@ func (r *SocialProvider) Create(ctx context.Context, req resource.CreateRequest,
 		})
 		resp.Diagnostics.AddError("error preparing social provider payload ", fmt.Sprintf("Error: %+v ", diag.Errors()))
 		return
+	}
+	// write-only: read from config, not plan; never written to state.
+	if !config.ClientSecretWO.IsNull() && !config.ClientSecretWO.IsUnknown() {
+		model.ClientSecret = config.ClientSecretWO.ValueString()
 	}
 	res, err := r.cidaasClient.SocialProvider.Upsert(ctx, model)
 	if err != nil {
@@ -360,11 +398,16 @@ func (r *SocialProvider) Read(ctx context.Context, req resource.ReadRequest, res
 		return
 	}
 
+	// Import is detected by ClientID being null (ImportState sets only provider_name and id).
+	// Outside import, leave state.ClientSecret null when client_secret_wo is in use.
+	isImport := state.ClientID.IsNull()
 	state.ID = util.StringValueOrNull(&res.Data.ID)
 	state.Name = util.StringValueOrNull(&res.Data.Name)
 	state.ProviderName = util.StringValueOrNull(&res.Data.ProviderName)
 	state.ClientID = util.StringValueOrNull(&res.Data.ClientID)
-	state.ClientSecret = util.StringValueOrNull(&res.Data.ClientSecret)
+	if !state.ClientSecret.IsNull() || isImport {
+		state.ClientSecret = util.StringValueOrNull(&res.Data.ClientSecret)
+	}
 	state.Enabled = util.BoolValueOrNull(&res.Data.Enabled)
 	state.EnabledForAdminPortal = util.BoolValueOrNull(&res.Data.EnabledForAdminPortal)
 	state.Scopes = util.SetValueOrNull(res.Data.Scopes)
@@ -406,9 +449,10 @@ func (r *SocialProvider) Read(ctx context.Context, req resource.ReadRequest, res
 }
 
 func (r *SocialProvider) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var plan, state SocialProviderConfig
+	var plan, state, config SocialProviderConfig
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
 	resp.Diagnostics.Append(plan.extract(ctx)...)
 	if resp.Diagnostics.HasError() {
 		tflog.Error(ctx, "failed to get plan/state data or extract configurations", util.H{
@@ -424,6 +468,9 @@ func (r *SocialProvider) Update(ctx context.Context, req resource.UpdateRequest,
 		})
 		resp.Diagnostics.AddError("error preparing social provider payload ", fmt.Sprintf("Error: %+v ", diag.Errors()))
 		return
+	}
+	if !config.ClientSecretWO.IsNull() && !config.ClientSecretWO.IsUnknown() {
+		model.ClientSecret = config.ClientSecretWO.ValueString()
 	}
 
 	model.ID = state.ID.ValueString()
