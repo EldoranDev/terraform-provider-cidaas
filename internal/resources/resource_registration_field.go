@@ -287,8 +287,9 @@ var regFieldSchema = schema.Schema{
 		},
 		// optional: Order of the Field in the UI
 		"order": schema.Int64Attribute{
+			Optional:            true,
 			Computed:            true,
-			MarkdownDescription: "The attribute order is used to set the order of the Field in the UI.",
+			MarkdownDescription: "The display order of the field in the registration UI. When omitted, the API assigns an order.",
 			PlanModifiers: []planmodifier.Int64{
 				int64planmodifier.UseStateForUnknown(),
 			},
@@ -338,7 +339,7 @@ var regFieldSchema = schema.Schema{
 					},
 					"required_msg": schema.StringAttribute{
 						Optional:            true,
-						MarkdownDescription: "When the flag required is set to true the required_msg must be provided. required_msg is shown if user does not provide a required field.",
+						MarkdownDescription: "Message shown when the field is required but empty. Must be provided when `required` is true. May also be set when `required` is false to pre-define translations for fields marked required at the application level.",
 					},
 					// optional: in case of datatype is RADIO, SELECT, MULTISELECT, etc. the localized attribute values are specified here
 					"attributes": schema.ListNestedAttribute{
@@ -554,6 +555,56 @@ func (rfc *RegFieldConfig) ExtractConfigs(ctx context.Context) diag.Diagnostics 
 	return diags
 }
 
+const registrationFieldDefaultParentGroupID = "DEFAULT"
+
+func registrationFieldParentGroupID(plan RegFieldConfig) string {
+	if !plan.ParentGroupID.IsNull() && !plan.ParentGroupID.IsUnknown() {
+		if v := plan.ParentGroupID.ValueString(); v != "" {
+			return v
+		}
+	}
+	return registrationFieldDefaultParentGroupID
+}
+
+func registrationFieldOrderChangeRequested(plan, state RegFieldConfig) (current, previous int64, ok bool) {
+	if plan.Order.IsNull() || plan.Order.IsUnknown() {
+		return 0, 0, false
+	}
+	if state.Order.IsNull() || state.Order.IsUnknown() {
+		return 0, 0, false
+	}
+	current = plan.Order.ValueInt64()
+	previous = state.Order.ValueInt64()
+	if current == previous {
+		return 0, 0, false
+	}
+	return current, previous, true
+}
+
+func registrationFieldOrderMatchesPlan(plan RegFieldConfig, actual int64) bool {
+	if plan.Order.IsNull() || plan.Order.IsUnknown() {
+		return true
+	}
+	return plan.Order.ValueInt64() == actual
+}
+
+func (r *RegFieldResource) applyRegistrationFieldOrderChange(ctx context.Context, plan RegFieldConfig, previousOrder int64) error {
+	if plan.Order.IsNull() || plan.Order.IsUnknown() {
+		return fmt.Errorf("order is required when reordering registration field %q", plan.FieldKey.ValueString())
+	}
+	currentOrder := plan.Order.ValueInt64()
+	if previousOrder <= 0 || currentOrder <= 0 {
+		return fmt.Errorf("registration field %q order must be greater than 0 (previous=%d, current=%d)",
+			 plan.FieldKey.ValueString(), previousOrder, currentOrder)
+	}
+	return r.cidaasClient.RegFields.UpdateOrder(ctx, cidaas.RegistrationFieldOrder{
+		ParentGroupID: registrationFieldParentGroupID(plan),
+		FieldKey:      plan.FieldKey.ValueString(),
+		CurrentOrder:  currentOrder,
+		PreviousOrder: previousOrder,
+	})
+}
+
 func (r *RegFieldResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var plan RegFieldConfig
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
@@ -582,6 +633,20 @@ func (r *RegFieldResource) Create(ctx context.Context, req resource.CreateReques
 	plan.ID = types.StringValue(res.Data.ID)
 	plan.Order = types.Int64Value(res.Data.Order)
 	plan.BaseDataType = types.StringValue(res.Data.BaseDataType)
+
+	if !registrationFieldOrderMatchesPlan(plan, res.Data.Order) {
+		if err := r.applyRegistrationFieldOrderChange(ctx, plan, res.Data.Order); err != nil {
+			resp.Diagnostics.AddError("failed to update registration field order", util.FormatErrorMessage(err))
+			return
+		}
+		getRes, err := r.cidaasClient.RegFields.Get(ctx, plan.FieldKey.ValueString())
+		if err != nil {
+			resp.Diagnostics.AddError("failed to read registration field after order update", util.FormatErrorMessage(err))
+			return
+		}
+		plan.Order = types.Int64Value(getRes.Data.Order)
+		plan.BaseDataType = types.StringValue(getRes.Data.BaseDataType)
+	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
@@ -858,7 +923,15 @@ func (r *RegFieldResource) Update(ctx context.Context, req resource.UpdateReques
 	}
 
 	fieldModel.ID = state.ID.ValueString()
-	_, err := r.cidaasClient.RegFields.Upsert(ctx, *fieldModel)
+
+	if _, previous, ok := registrationFieldOrderChangeRequested(plan, state); ok {
+		if err := r.applyRegistrationFieldOrderChange(ctx, plan, previous); err != nil {
+			resp.Diagnostics.AddError("failed to update registration field order", util.FormatErrorMessage(err))
+			return
+		}
+	}
+
+	res, err := r.cidaasClient.RegFields.Upsert(ctx, *fieldModel)
 	if err != nil {
 		tflog.Error(ctx, "failed to update registration field via API", util.H{
 			"field_id": state.ID.ValueString(),
@@ -870,6 +943,8 @@ func (r *RegFieldResource) Update(ctx context.Context, req resource.UpdateReques
 	tflog.Info(ctx, "successfully updated registration field via API", util.H{
 		"field_id": state.ID.ValueString(),
 	})
+
+	plan.Order = types.Int64Value(res.Data.Order)
 
 	// Computed base_data_type must be known after apply (e.g. GROUPING has empty). Fallback to state or "".
 	if plan.BaseDataType.IsUnknown() {
@@ -941,6 +1016,9 @@ func prepareRegFieldModel(ctx context.Context, plan RegFieldConfig) (*cidaas.Reg
 	regConfig.FieldType = plan.FieldType.ValueString()
 	regConfig.FieldKey = plan.FieldKey.ValueString()
 	regConfig.DataType = plan.DataType.ValueString()
+	if !plan.Order.IsNull() && !plan.Order.IsUnknown() {
+		regConfig.Order = plan.Order.ValueInt64()
+	}
 
 	className := "FieldSetup"
 	if regConfig.FieldType == "SYSTEM" {
@@ -1177,7 +1255,7 @@ func (v validateIsMaxMinMsgAvailableForRegex) ValidateString(ctx context.Context
 }
 
 func (v validateIsRequiredMsgAvailable) Description(_ context.Context) string {
-	return "msg is required when required is true"
+	return "required_msg must be set when required is true"
 }
 
 func (v validateIsRequiredMsgAvailable) MarkdownDescription(ctx context.Context) string {
@@ -1188,28 +1266,14 @@ func (v validateIsRequiredMsgAvailable) ValidateBool(ctx context.Context, req va
 	var config RegFieldConfig
 	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
 	resp.Diagnostics.Append(config.ExtractConfigs(ctx)...)
-	if !req.ConfigValue.IsNull() && req.ConfigValue.ValueBool() {
-		if len(config.localTexts) > 0 {
-			for _, v := range config.localTexts {
-				if v.RequiredMsg.IsNull() || v.RequiredMsg.ValueString() == "" {
-					resp.Diagnostics.AddError(
-						"Validation Error",
-						fmt.Sprintf("The attribute local_texts.required_msg is required when %s is set to true", req.Path.String()),
-					)
-					return
-				}
-			}
-		}
-	} else {
-		if len(config.localTexts) > 0 {
-			for _, v := range config.localTexts {
-				if !v.RequiredMsg.IsNull() {
-					resp.Diagnostics.AddError(
-						"Validation Error",
-						fmt.Sprintf("The attribute local_texts.required_msg is not allowed in config when attribute %s is set to false", req.Path.String()),
-					)
-					return
-				}
+	if !req.ConfigValue.IsNull() && req.ConfigValue.ValueBool() && len(config.localTexts) > 0 {
+		for _, v := range config.localTexts {
+			if v.RequiredMsg.IsNull() || v.RequiredMsg.ValueString() == "" {
+				resp.Diagnostics.AddError(
+					"Validation Error",
+					fmt.Sprintf("The attribute local_texts.required_msg is required when %s is set to true", req.Path.String()),
+				)
+				return
 			}
 		}
 	}

@@ -1,5 +1,12 @@
 ## Changelog
 
+### 3.5.16
+
+#### Enhancements
+
+- **`cidaas_registration_field`:** **`order`** is now a writable optional attribute (previously read-only/computed only). When set, the provider positions the field via fieldsetup-srv: on **update**, **`PATCH /fieldsetup-srv/fields/order`** runs before upsert when **`order`** changes (upsert alone does not change order); on **create**, reorder runs after upsert when an explicit **`order`** differs from the API-assigned value. Omit **`order`** to leave position unchanged or accept the next available slot on create.
+- **`cidaas_registration_field`:** **`local_texts.required_msg`** may be set when **`required`** is **`false`**, so translations can be pre-defined for fields marked required at the application level. Validation still requires **`required_msg`** in every **`local_texts`** block when **`required`** is **`true`**.
+
 ### 3.5.15
 
 #### Enhancements

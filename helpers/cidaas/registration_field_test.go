@@ -800,3 +800,65 @@ func TestRegField_GetAll_Error(t *testing.T) {
 		t.Error("Expected error for server error, got nil")
 	}
 }
+
+func TestRegField_UpdateOrder_Success(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPatch {
+			t.Errorf("Expected PATCH method, got %s", r.Method)
+		}
+		if !strings.Contains(r.URL.Path, "fieldsetup-srv/fields/order") {
+			t.Errorf("Expected fieldsetup-srv/fields/order endpoint, got %s", r.URL.Path)
+		}
+
+		body, err := io.ReadAll(r.Body)
+		if err != nil {
+			t.Fatalf("Failed to read request body: %v", err)
+		}
+		var order RegistrationFieldOrder
+		if err := json.Unmarshal(body, &order); err != nil {
+			t.Fatalf("Failed to unmarshal request body: %v", err)
+		}
+		if order.FieldKey != "sample_field" || order.CurrentOrder != 10 || order.PreviousOrder != 49 {
+			t.Errorf("Unexpected order payload: %+v", order)
+		}
+		if order.ParentGroupID != "DEFAULT" {
+			t.Errorf("Expected parent_group_id DEFAULT, got %s", order.ParentGroupID)
+		}
+
+		response := RegistrationFieldOrderResponse{Success: true, Status: 200, Data: true}
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(response)
+	}))
+	defer server.Close()
+
+	config := NewTestClientConfig(server.URL)
+	regField := NewRegField(config)
+
+	err := regField.UpdateOrder(context.Background(), RegistrationFieldOrder{
+		ParentGroupID: "DEFAULT",
+		FieldKey:      "sample_field",
+		CurrentOrder:  10,
+		PreviousOrder: 49,
+	})
+	if err != nil {
+		t.Fatalf("UpdateOrder failed: %v", err)
+	}
+}
+
+func TestRegField_UpdateOrder_Error(t *testing.T) {
+	server := NewMockServer(http.StatusBadRequest, `{"success":false,"status":400,"data":false}`)
+	defer server.Close()
+
+	config := NewTestClientConfig(server.URL)
+	regField := NewRegField(config)
+
+	err := regField.UpdateOrder(context.Background(), RegistrationFieldOrder{
+		ParentGroupID: "DEFAULT",
+		FieldKey:      "sample_field",
+		CurrentOrder:  10,
+		PreviousOrder: 99,
+	})
+	if err == nil {
+		t.Fatal("Expected error for bad request, got nil")
+	}
+}

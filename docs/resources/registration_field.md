@@ -2,14 +2,14 @@
 page_title: "cidaas_registration_field Resource - cidaas"
 subcategory: ""
 description: |-
-  The cidaas_registration_field in the provider allows management of registration fields in the cidaas system. This resource enables you to configure and customize the fields displayed during user registration.
+  The cidaas_registration_field in the provider allows management of registration fields in the Cidaas system. This resource enables you to configure and customize the fields displayed during user registration.
   Ensure that the below scopes are assigned to the client with the specified client_id:
   cidaas:field_setup_readcidaas:field_setup_writecidaas:field_setup_delete
 ---
 
 # cidaas_registration_field (Resource)
 
-The `cidaas_registration_field` in the provider allows management of registration fields in the cidaas system. This resource enables you to configure and customize the fields displayed during user registration.
+The `cidaas_registration_field` in the provider allows management of registration fields in the Cidaas system. This resource enables you to configure and customize the fields displayed during user registration.
 
  Ensure that the below scopes are assigned to the client with the specified `client_id`:
 - cidaas:field_setup_read
@@ -76,6 +76,7 @@ resource "cidaas_registration_field" "text" {
 - `internal` (Boolean) Flag to mark if a field is internal. Defaults set to `false`
 - `is_list` (Boolean)
 - `is_searchable` (Boolean) Flag to mark if a field is searchable. Defaults set to `true`
+- `order` (Number) The display order of the field in the registration UI. When omitted on create, fieldsetup-srv assigns the next available order. Changing `order` on an existing field uses the fieldsetup-srv reorder API (`PATCH /fieldsetup-srv/fields/order`) before other updates are applied; upsert alone does not change order.
 - `overwrite_with_null_value_from_social_provider` (Boolean) Set to true if you want the value should be reset by identity provider. Defaults set to `false`
 - `parent_group_id` (String) The ID of the parent registration group. Defaults to `DEFAULT` if not provided.
 - `read_only` (Boolean) Flag to mark if a field is read only. Defaults set to `false`
@@ -88,7 +89,6 @@ resource "cidaas_registration_field" "text" {
 
 - `base_data_type` (String) The base data type of the field. This is computed property.
 - `id` (String) The ID of the resource
-- `order` (Number) The attribute order is used to set the order of the Field in the UI.
 
 <a id="nestedatt--local_texts"></a>
 ### Nested Schema for `local_texts`
@@ -104,7 +104,7 @@ Optional:
 - `locale` (String) The locale of the field. example: de-DE.
 - `max_length_msg` (String) warning/error msg to show to the user when user exceeds the maximum character configured. This is applicable only for the attributes of base_data_type string.
 - `min_length_msg` (String) warning/error msg to show to the user when user don't provide the minimum character required. This is applicable only for the attributes of base_data_type string.
-- `required_msg` (String) When the flag required is set to true the required_msg must be provided. required_msg is shown if user does not provide a required field.
+- `required_msg` (String) Message shown when the field is required but empty. Must be provided when `required` is true. May also be set when `required` is false to pre-define translations for fields marked required at the application level.
 
 <a id="nestedatt--local_texts--attributes"></a>
 ### Nested Schema for `local_texts.attributes`
