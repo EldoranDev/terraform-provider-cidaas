@@ -177,7 +177,7 @@ var resourceAppSchema = schema.Schema{
 		"grant_types": schema.SetAttribute{
 			ElementType:         types.StringType,
 			Optional:            true,
-			MarkdownDescription: "The grant types of the client. The default value is set to `['implicit','authorization_code', 'password', 'refresh_token']`",
+			MarkdownDescription: "The grant types of the client. The default value is set to `['implicit','authorization_code', 'password', 'refresh_token']`. Include `session_transfer` on the native client when using the session transfer token (STT) flow.",
 		},
 		"login_providers": schema.SetAttribute{
 			ElementType:         types.StringType,

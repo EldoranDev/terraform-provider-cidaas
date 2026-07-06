@@ -255,7 +255,7 @@ resource "cidaas_app" "sample" {
 - `enable_login_spi` (Boolean) If enabled, the login service verifies whether login spi responsded with success only then it issues a token.
 - `enable_passwordless_auth` (Boolean) Enable passwordless authentication. Default is set to `true` while creating an app.
 - `enabled` (Boolean)
-- `grant_types` (Set of String) The grant types of the client. The default value is set to `['implicit','authorization_code', 'password', 'refresh_token']`
+- `grant_types` (Set of String) The grant types of the client. The default value is set to `['implicit','authorization_code', 'password', 'refresh_token']`. Include `session_transfer` on the native client when using the session transfer token (STT) flow.
 - `group_ids` (Set of String)
 - `group_role_restriction` (Attributes) (see [below for nested schema](#nestedatt--group_role_restriction))
 - `group_selection` (Attributes) (see [below for nested schema](#nestedatt--group_selection))
