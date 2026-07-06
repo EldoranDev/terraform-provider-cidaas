@@ -100,6 +100,7 @@ type FieldDefinition struct {
 	InitialDate     *time.Time `json:"initialDate,omitempty"`
 	InitialDateView string     `json:"initialDateView,omitempty"`
 	Regex           string     `json:"regex,omitempty"`
+	MatchWith       string     `json:"matchWith,omitempty"`
 	AttributesKeys  []string   `json:"attributesKeys,omitempty"`
 }
 
@@ -107,6 +108,7 @@ type LocaleText struct {
 	MinLengthErrorMsg string        `json:"minLength,omitempty"`
 	MaxLengthErrorMsg string        `json:"maxLength,omitempty"`
 	RequiredMsg       string        `json:"required,omitempty"`
+	MatchWithMsg      string        `json:"matchWith,omitempty"`
 	Locale            string        `json:"locale,omitempty"`
 	Name              string        `json:"name,omitempty"`
 	Attributes        []*Attribute  `json:"attributes,omitempty"`
@@ -121,6 +123,20 @@ type Attribute struct {
 type ConsentLabel struct {
 	Label     string `json:"label,omitempty"`
 	LabelText string `json:"label_text,omitempty"`
+}
+
+// RegistrationFieldOrder is the PATCH /fieldsetup-srv/fields/order request body.
+type RegistrationFieldOrder struct {
+	ParentGroupID string `json:"parent_group_id,omitempty"`
+	FieldKey      string `json:"fieldKey,omitempty"`
+	CurrentOrder  int64  `json:"currentOrder,omitempty"`
+	PreviousOrder int64  `json:"previousOrder,omitempty"`
+}
+
+type RegistrationFieldOrderResponse struct {
+	Success bool `json:"success"`
+	Status  int  `json:"status"`
+	Data    bool `json:"data"`
 }
 
 type RegField struct {
@@ -148,6 +164,29 @@ func (r *RegField) Upsert(ctx context.Context, rfc RegistrationFieldConfig) (*Re
 		return nil, err
 	}
 	return &response, nil
+}
+
+func (r *RegField) UpdateOrder(ctx context.Context, order RegistrationFieldOrder) error {
+	var response RegistrationFieldOrderResponse
+	url := fmt.Sprintf("%s/%s", r.BaseURL, "fieldsetup-srv/fields/order")
+	client, err := util.NewHTTPClient(
+		url, http.MethodPatch, r.AccessToken)
+	if err != nil {
+		return err
+	}
+	res, err := client.MakeRequest(ctx, order)
+	if err = util.HandleResponseError(res, err); err != nil {
+		return err
+	}
+	defer res.Body.Close()
+
+	if err = util.ProcessResponse(res, &response); err != nil {
+		return err
+	}
+	if !response.Success {
+		return fmt.Errorf("registration field order update was not successful (success=false, status=%d)", response.Status)
+	}
+	return nil
 }
 
 func (r *RegField) Get(ctx context.Context, fieldKey string) (*RegistrationFieldResponse, error) {

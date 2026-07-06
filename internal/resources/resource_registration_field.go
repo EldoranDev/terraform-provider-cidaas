@@ -130,6 +130,7 @@ type LocalTexts struct {
 	MaxLengthMsg types.String `tfsdk:"max_length_msg"`
 	MinLengthMsg types.String `tfsdk:"min_length_msg"`
 	RequiredMsg  types.String `tfsdk:"required_msg"`
+	MatchWithMsg types.String `tfsdk:"match_with_msg"`
 	Attributes   types.List   `tfsdk:"attributes"`
 	ConsentLabel types.Object `tfsdk:"consent_label"`
 
@@ -155,6 +156,7 @@ type FieldDefinition struct {
 	InitialDateView types.String `tfsdk:"initial_date_view"`
 	InitialDate     types.String `tfsdk:"initial_date"`
 	Regex           types.String `tfsdk:"regex"`
+	MatchWith       types.String `tfsdk:"match_with"`
 }
 
 var regFieldSchema = schema.Schema{
@@ -287,8 +289,9 @@ var regFieldSchema = schema.Schema{
 		},
 		// optional: Order of the Field in the UI
 		"order": schema.Int64Attribute{
+			Optional:            true,
 			Computed:            true,
-			MarkdownDescription: "The attribute order is used to set the order of the Field in the UI.",
+			MarkdownDescription: "The display order of the field in the registration UI. When omitted, the API assigns an order.",
 			PlanModifiers: []planmodifier.Int64{
 				int64planmodifier.UseStateForUnknown(),
 			},
@@ -338,7 +341,14 @@ var regFieldSchema = schema.Schema{
 					},
 					"required_msg": schema.StringAttribute{
 						Optional:            true,
-						MarkdownDescription: "When the flag required is set to true the required_msg must be provided. required_msg is shown if user does not provide a required field.",
+						MarkdownDescription: "Message shown when the field is required but empty. Must be provided when `required` is true. May also be set when `required` is false to pre-define translations for fields marked required at the application level.",
+					},
+					"match_with_msg": schema.StringAttribute{
+						Optional:            true,
+						MarkdownDescription: "Localized error message when field values do not match the referenced field. Only allowed when `field_key` is `password_echo`. Required in every locale when `field_definition.match_with` is set.",
+						Validators: []validator.String{
+							&validateMatchWithMsg{},
+						},
 					},
 					// optional: in case of datatype is RADIO, SELECT, MULTISELECT, etc. the localized attribute values are specified here
 					"attributes": schema.ListNestedAttribute{
@@ -427,6 +437,13 @@ var regFieldSchema = schema.Schema{
 						&validateIsMaxMinMsgAvailableForRegex{},
 					},
 				},
+				"match_with": schema.StringAttribute{
+					Optional:            true,
+					MarkdownDescription: "The `field_key` of another field whose value this field must match (e.g. password confirmation). Only allowed when `field_key` is `password_echo`.",
+					Validators: []validator.String{
+						&validateMatchWith{},
+					},
+				},
 			},
 			Default: objectdefault.StaticValue(types.ObjectValueMust(
 				map[string]attr.Type{
@@ -437,6 +454,7 @@ var regFieldSchema = schema.Schema{
 					"initial_date_view": types.StringType,
 					"initial_date":      types.StringType,
 					"regex":             types.StringType,
+					"match_with":        types.StringType,
 				},
 				map[string]attr.Value{
 					"max_length":        types.Int64Null(),
@@ -446,6 +464,7 @@ var regFieldSchema = schema.Schema{
 					"initial_date_view": types.StringNull(),
 					"initial_date":      types.StringNull(),
 					"regex":             types.StringNull(),
+					"match_with":        types.StringNull(),
 				})),
 		},
 	},
@@ -554,6 +573,59 @@ func (rfc *RegFieldConfig) ExtractConfigs(ctx context.Context) diag.Diagnostics 
 	return diags
 }
 
+const (
+	registrationFieldDefaultParentGroupID = "DEFAULT"
+	registrationFieldPasswordEchoKey        = "password_echo"
+)
+
+func registrationFieldParentGroupID(plan RegFieldConfig) string {
+	if !plan.ParentGroupID.IsNull() && !plan.ParentGroupID.IsUnknown() {
+		if v := plan.ParentGroupID.ValueString(); v != "" {
+			return v
+		}
+	}
+	return registrationFieldDefaultParentGroupID
+}
+
+func registrationFieldOrderChangeRequested(plan, state RegFieldConfig) (current, previous int64, ok bool) {
+	if plan.Order.IsNull() || plan.Order.IsUnknown() {
+		return 0, 0, false
+	}
+	if state.Order.IsNull() || state.Order.IsUnknown() {
+		return 0, 0, false
+	}
+	current = plan.Order.ValueInt64()
+	previous = state.Order.ValueInt64()
+	if current == previous {
+		return 0, 0, false
+	}
+	return current, previous, true
+}
+
+func registrationFieldOrderMatchesPlan(plan RegFieldConfig, actual int64) bool {
+	if plan.Order.IsNull() || plan.Order.IsUnknown() {
+		return true
+	}
+	return plan.Order.ValueInt64() == actual
+}
+
+func (r *RegFieldResource) applyRegistrationFieldOrderChange(ctx context.Context, plan RegFieldConfig, previousOrder int64) error {
+	if plan.Order.IsNull() || plan.Order.IsUnknown() {
+		return fmt.Errorf("order is required when reordering registration field %q", plan.FieldKey.ValueString())
+	}
+	currentOrder := plan.Order.ValueInt64()
+	if previousOrder <= 0 || currentOrder <= 0 {
+		return fmt.Errorf("registration field %q order must be greater than 0 (previous=%d, current=%d)",
+			 plan.FieldKey.ValueString(), previousOrder, currentOrder)
+	}
+	return r.cidaasClient.RegFields.UpdateOrder(ctx, cidaas.RegistrationFieldOrder{
+		ParentGroupID: registrationFieldParentGroupID(plan),
+		FieldKey:      plan.FieldKey.ValueString(),
+		CurrentOrder:  currentOrder,
+		PreviousOrder: previousOrder,
+	})
+}
+
 func (r *RegFieldResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var plan RegFieldConfig
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
@@ -582,6 +654,20 @@ func (r *RegFieldResource) Create(ctx context.Context, req resource.CreateReques
 	plan.ID = types.StringValue(res.Data.ID)
 	plan.Order = types.Int64Value(res.Data.Order)
 	plan.BaseDataType = types.StringValue(res.Data.BaseDataType)
+
+	if !registrationFieldOrderMatchesPlan(plan, res.Data.Order) {
+		if err := r.applyRegistrationFieldOrderChange(ctx, plan, res.Data.Order); err != nil {
+			resp.Diagnostics.AddError("failed to update registration field order", util.FormatErrorMessage(err))
+			return
+		}
+		getRes, err := r.cidaasClient.RegFields.Get(ctx, plan.FieldKey.ValueString())
+		if err != nil {
+			resp.Diagnostics.AddError("failed to read registration field after order update", util.FormatErrorMessage(err))
+			return
+		}
+		plan.Order = types.Int64Value(getRes.Data.Order)
+		plan.BaseDataType = types.StringValue(getRes.Data.BaseDataType)
+	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
@@ -650,6 +736,7 @@ func (r *RegFieldResource) Read(ctx context.Context, req resource.ReadRequest, r
 			"max_length_msg": types.StringType,
 			"min_length_msg": types.StringType,
 			"required_msg":   types.StringType,
+			"match_with_msg": types.StringType,
 			"attributes":     types.ListType{ElemType: types.ObjectType{AttrTypes: typesOfAttribute}},
 			"consent_label":  types.ObjectType{AttrTypes: typesOfConsentLabel},
 		},
@@ -673,6 +760,7 @@ func (r *RegFieldResource) Read(ctx context.Context, req resource.ReadRequest, r
 				"max_length_msg": util.StringValueOrNull(&lt.MaxLengthErrorMsg),
 				"min_length_msg": util.StringValueOrNull(&lt.MinLengthErrorMsg),
 				"required_msg":   util.StringValueOrNull(&lt.RequiredMsg),
+				"match_with_msg": util.StringValueOrNull(&lt.MatchWithMsg),
 				"attributes": func() types.List {
 					if !(len(lt.Attributes) > 0) {
 						return types.ListNull(types.ObjectType{AttrTypes: typesOfAttribute})
@@ -714,6 +802,7 @@ func (r *RegFieldResource) Read(ctx context.Context, req resource.ReadRequest, r
 				"initial_date_view": types.StringType,
 				"initial_date":      types.StringType,
 				"regex":             types.StringType,
+				"match_with":        types.StringType,
 			},
 			map[string]attr.Value{
 				"max_length": func() basetypes.Int64Value {
@@ -733,6 +822,7 @@ func (r *RegFieldResource) Read(ctx context.Context, req resource.ReadRequest, r
 				"initial_date_view": util.StringValueOrNull(&res.Data.FieldDefinition.InitialDateView),
 				"initial_date":      util.TimeValueOrNull(res.Data.FieldDefinition.InitialDate),
 				"regex":             util.StringValueOrNull(&res.Data.FieldDefinition.Regex),
+				"match_with":        util.StringValueOrNull(&res.Data.FieldDefinition.MatchWith),
 			})
 		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {
@@ -858,7 +948,15 @@ func (r *RegFieldResource) Update(ctx context.Context, req resource.UpdateReques
 	}
 
 	fieldModel.ID = state.ID.ValueString()
-	_, err := r.cidaasClient.RegFields.Upsert(ctx, *fieldModel)
+
+	if _, previous, ok := registrationFieldOrderChangeRequested(plan, state); ok {
+		if err := r.applyRegistrationFieldOrderChange(ctx, plan, previous); err != nil {
+			resp.Diagnostics.AddError("failed to update registration field order", util.FormatErrorMessage(err))
+			return
+		}
+	}
+
+	res, err := r.cidaasClient.RegFields.Upsert(ctx, *fieldModel)
 	if err != nil {
 		tflog.Error(ctx, "failed to update registration field via API", util.H{
 			"field_id": state.ID.ValueString(),
@@ -870,6 +968,8 @@ func (r *RegFieldResource) Update(ctx context.Context, req resource.UpdateReques
 	tflog.Info(ctx, "successfully updated registration field via API", util.H{
 		"field_id": state.ID.ValueString(),
 	})
+
+	plan.Order = types.Int64Value(res.Data.Order)
 
 	// Computed base_data_type must be known after apply (e.g. GROUPING has empty). Fallback to state or "".
 	if plan.BaseDataType.IsUnknown() {
@@ -941,6 +1041,9 @@ func prepareRegFieldModel(ctx context.Context, plan RegFieldConfig) (*cidaas.Reg
 	regConfig.FieldType = plan.FieldType.ValueString()
 	regConfig.FieldKey = plan.FieldKey.ValueString()
 	regConfig.DataType = plan.DataType.ValueString()
+	if !plan.Order.IsNull() && !plan.Order.IsUnknown() {
+		regConfig.Order = plan.Order.ValueInt64()
+	}
 
 	className := "FieldSetup"
 	if regConfig.FieldType == "SYSTEM" {
@@ -969,6 +1072,7 @@ func prepareRegFieldModel(ctx context.Context, plan RegFieldConfig) (*cidaas.Reg
 				MaxLengthErrorMsg: s.MaxLengthMsg.ValueString(),
 				MinLengthErrorMsg: s.MinLengthMsg.ValueString(),
 				RequiredMsg:       s.RequiredMsg.ValueString(),
+				MatchWithMsg:      s.MatchWithMsg.ValueString(),
 			}
 			cidaasAttribues := []*cidaas.Attribute{}
 
@@ -1001,6 +1105,7 @@ func prepareRegFieldModel(ctx context.Context, plan RegFieldConfig) (*cidaas.Reg
 			MaxLength:       plan.fieldDefinition.MaxLength.ValueInt64Pointer(),
 			InitialDateView: plan.fieldDefinition.InitialDateView.ValueString(),
 			Regex:           plan.fieldDefinition.Regex.ValueString(),
+			MatchWith:       plan.fieldDefinition.MatchWith.ValueString(),
 		}
 		if len(attrKeys) > 0 {
 			regConfig.FieldDefinition.AttributesKeys = attrKeys
@@ -1122,6 +1227,8 @@ var (
 	_ validator.String    = dateValidator{}
 	_ validator.String    = dataTypeValidator{}
 	_ validator.String    = validateIsMaxMinMsgAvailableForRegex{}
+	_ validator.String    = validateMatchWith{}
+	_ validator.String    = validateMatchWithMsg{}
 )
 
 type (
@@ -1132,6 +1239,8 @@ type (
 	dateValidator                        struct{}
 	dataTypeValidator                    struct{}
 	validateIsMaxMinMsgAvailableForRegex struct{}
+	validateMatchWith                    struct{}
+	validateMatchWithMsg                 struct{}
 )
 
 func (v validateIsMaxMinMsgAvailableForRegex) Description(_ context.Context) string {
@@ -1177,7 +1286,7 @@ func (v validateIsMaxMinMsgAvailableForRegex) ValidateString(ctx context.Context
 }
 
 func (v validateIsRequiredMsgAvailable) Description(_ context.Context) string {
-	return "msg is required when required is true"
+	return "required_msg must be set when required is true"
 }
 
 func (v validateIsRequiredMsgAvailable) MarkdownDescription(ctx context.Context) string {
@@ -1188,28 +1297,14 @@ func (v validateIsRequiredMsgAvailable) ValidateBool(ctx context.Context, req va
 	var config RegFieldConfig
 	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
 	resp.Diagnostics.Append(config.ExtractConfigs(ctx)...)
-	if !req.ConfigValue.IsNull() && req.ConfigValue.ValueBool() {
-		if len(config.localTexts) > 0 {
-			for _, v := range config.localTexts {
-				if v.RequiredMsg.IsNull() || v.RequiredMsg.ValueString() == "" {
-					resp.Diagnostics.AddError(
-						"Validation Error",
-						fmt.Sprintf("The attribute local_texts.required_msg is required when %s is set to true", req.Path.String()),
-					)
-					return
-				}
-			}
-		}
-	} else {
-		if len(config.localTexts) > 0 {
-			for _, v := range config.localTexts {
-				if !v.RequiredMsg.IsNull() {
-					resp.Diagnostics.AddError(
-						"Validation Error",
-						fmt.Sprintf("The attribute local_texts.required_msg is not allowed in config when attribute %s is set to false", req.Path.String()),
-					)
-					return
-				}
+	if !req.ConfigValue.IsNull() && req.ConfigValue.ValueBool() && len(config.localTexts) > 0 {
+		for _, v := range config.localTexts {
+			if v.RequiredMsg.IsNull() || v.RequiredMsg.ValueString() == "" {
+				resp.Diagnostics.AddError(
+					"Validation Error",
+					fmt.Sprintf("The attribute local_texts.required_msg is required when %s is set to true", req.Path.String()),
+				)
+				return
 			}
 		}
 	}
@@ -1413,5 +1508,96 @@ func (v dataTypeValidator) ValidateString(ctx context.Context, req validator.Str
 				)
 			}
 		}
+	}
+
+	if config.FieldKey.ValueString() != registrationFieldPasswordEchoKey {
+		if !config.FieldDefinition.IsNull() && !config.FieldDefinition.IsUnknown() &&
+			!config.fieldDefinition.MatchWith.IsNull() && config.fieldDefinition.MatchWith.ValueString() != "" {
+			resp.Diagnostics.AddError(
+				"Unexpected Resource Configuration",
+				"Attribute field_definition.match_with is only allowed when field_key is password_echo.",
+			)
+		}
+		for _, lt := range config.localTexts {
+			if !lt.MatchWithMsg.IsNull() && lt.MatchWithMsg.ValueString() != "" {
+				resp.Diagnostics.AddError(
+					"Unexpected Resource Configuration",
+					"Attribute local_texts.match_with_msg is only allowed when field_key is password_echo.",
+				)
+				return
+			}
+		}
+	}
+}
+
+func (v validateMatchWith) Description(_ context.Context) string {
+	return "match_with is only allowed when field_key is password_echo"
+}
+
+func (v validateMatchWith) MarkdownDescription(ctx context.Context) string {
+	return v.Description(ctx)
+}
+
+func (v validateMatchWith) ValidateString(ctx context.Context, req validator.StringRequest, resp *validator.StringResponse) {
+	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
+		return
+	}
+
+	var config RegFieldConfig
+	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
+	resp.Diagnostics.Append(config.ExtractConfigs(ctx)...)
+	if config.FieldKey.ValueString() != registrationFieldPasswordEchoKey {
+		resp.Diagnostics.AddError(
+			"Validation Error",
+			fmt.Sprintf("The attribute %s is only allowed when field_key is password_echo", req.Path.String()),
+		)
+		return
+	}
+
+	for _, lt := range config.localTexts {
+		if lt.MatchWithMsg.IsNull() || lt.MatchWithMsg.ValueString() == "" {
+			resp.Diagnostics.AddError(
+				"Validation Error",
+				"The attribute local_texts.match_with_msg can not be empty when field_definition.match_with is set",
+			)
+			return
+		}
+	}
+}
+
+func (v validateMatchWithMsg) Description(_ context.Context) string {
+	return "match_with_msg is only allowed when field_key is password_echo and required when match_with is set"
+}
+
+func (v validateMatchWithMsg) MarkdownDescription(ctx context.Context) string {
+	return v.Description(ctx)
+}
+
+func (v validateMatchWithMsg) ValidateString(ctx context.Context, req validator.StringRequest, resp *validator.StringResponse) {
+	var config RegFieldConfig
+	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
+	resp.Diagnostics.Append(config.ExtractConfigs(ctx)...)
+
+	if !req.ConfigValue.IsNull() && req.ConfigValue.ValueString() != "" &&
+		config.FieldKey.ValueString() != registrationFieldPasswordEchoKey {
+		resp.Diagnostics.AddError(
+			"Validation Error",
+			fmt.Sprintf("The attribute %s is only allowed when field_key is password_echo", req.Path.String()),
+		)
+		return
+	}
+
+	if config.FieldDefinition.IsNull() || config.FieldDefinition.IsUnknown() || config.fieldDefinition == nil {
+		return
+	}
+	if config.fieldDefinition.MatchWith.IsNull() || config.fieldDefinition.MatchWith.ValueString() == "" {
+		return
+	}
+
+	if req.ConfigValue.IsNull() || req.ConfigValue.ValueString() == "" {
+		resp.Diagnostics.AddError(
+			"Validation Error",
+			"The attribute local_texts.match_with_msg can not be empty when field_definition.match_with is set",
+		)
 	}
 }

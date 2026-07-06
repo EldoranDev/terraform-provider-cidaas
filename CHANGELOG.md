@@ -1,5 +1,19 @@
 ## Changelog
 
+### 3.5.17
+
+#### Enhancements
+
+- **`cidaas_app`:** Added optional **`require_pkce`** and **`disable_insecure_pkce_method`**. `require_pkce` enforces `code_challenge` on authz/PAR (AUTH10063 when missing). `disable_insecure_pkce_method` rejects insecure PKCE `plain` method and implicit plain default; only `S256` allowed (AUTH10048).
+- **`cidaas_registration_field`:** Added **`field_definition.match_with`** and **`local_texts.match_with_msg`** for the system **`password_echo`** field (password confirmation). Maps to API `fieldDefinition.matchWith` and `localeTexts.matchWith`. Only allowed when **`field_key`** is **`password_echo`**; when **`match_with`** is set, every locale must include **`match_with_msg`**.
+
+### 3.5.16
+
+#### Enhancements
+
+- **`cidaas_registration_field`:** **`order`** is now a writable optional attribute (previously read-only/computed only). When set, the provider positions the field via fieldsetup-srv: on **update**, **`PATCH /fieldsetup-srv/fields/order`** runs before upsert when **`order`** changes (upsert alone does not change order); on **create**, reorder runs after upsert when an explicit **`order`** differs from the API-assigned value. Omit **`order`** to leave position unchanged or accept the next available slot on create.
+- **`cidaas_registration_field`:** **`local_texts.required_msg`** may be set when **`required`** is **`false`**, so translations can be pre-defined for fields marked required at the application level. Validation still requires **`required_msg`** in every **`local_texts`** block when **`required`** is **`true`**.
+
 ### 3.5.15
 
 #### Enhancements

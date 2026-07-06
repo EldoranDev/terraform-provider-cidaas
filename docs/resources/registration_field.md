@@ -2,14 +2,14 @@
 page_title: "cidaas_registration_field Resource - cidaas"
 subcategory: ""
 description: |-
-  The cidaas_registration_field in the provider allows management of registration fields in the cidaas system. This resource enables you to configure and customize the fields displayed during user registration.
+  The cidaas_registration_field in the provider allows management of registration fields in the Cidaas system. This resource enables you to configure and customize the fields displayed during user registration.
   Ensure that the below scopes are assigned to the client with the specified client_id:
   cidaas:field_setup_readcidaas:field_setup_writecidaas:field_setup_delete
 ---
 
 # cidaas_registration_field (Resource)
 
-The `cidaas_registration_field` in the provider allows management of registration fields in the cidaas system. This resource enables you to configure and customize the fields displayed during user registration.
+The `cidaas_registration_field` in the provider allows management of registration fields in the Cidaas system. This resource enables you to configure and customize the fields displayed during user registration.
 
  Ensure that the below scopes are assigned to the client with the specified `client_id`:
 - cidaas:field_setup_read
@@ -76,6 +76,7 @@ resource "cidaas_registration_field" "text" {
 - `internal` (Boolean) Flag to mark if a field is internal. Defaults set to `false`
 - `is_list` (Boolean)
 - `is_searchable` (Boolean) Flag to mark if a field is searchable. Defaults set to `true`
+- `order` (Number) The display order of the field in the registration UI. When omitted, the API assigns an order.
 - `overwrite_with_null_value_from_social_provider` (Boolean) Set to true if you want the value should be reset by identity provider. Defaults set to `false`
 - `parent_group_id` (String) The ID of the parent registration group. Defaults to `DEFAULT` if not provided.
 - `read_only` (Boolean) Flag to mark if a field is read only. Defaults set to `false`
@@ -88,7 +89,6 @@ resource "cidaas_registration_field" "text" {
 
 - `base_data_type` (String) The base data type of the field. This is computed property.
 - `id` (String) The ID of the resource
-- `order` (Number) The attribute order is used to set the order of the Field in the UI.
 
 <a id="nestedatt--local_texts"></a>
 ### Nested Schema for `local_texts`
@@ -102,9 +102,10 @@ Optional:
 - `attributes` (Attributes List) The field attributes must be provided for the data_type SELECT, MULTISELECT and RADIO. it's an array of key value pairs. Example provided in the example section. (see [below for nested schema](#nestedatt--local_texts--attributes))
 - `consent_label` (Attributes) required when data_type is CONSENT. Example provided in the example section. (see [below for nested schema](#nestedatt--local_texts--consent_label))
 - `locale` (String) The locale of the field. example: de-DE.
+- `match_with_msg` (String) Localized error message when field values do not match the referenced field. Only allowed when `field_key` is `password_echo`. Required in every locale when `field_definition.match_with` is set.
 - `max_length_msg` (String) warning/error msg to show to the user when user exceeds the maximum character configured. This is applicable only for the attributes of base_data_type string.
 - `min_length_msg` (String) warning/error msg to show to the user when user don't provide the minimum character required. This is applicable only for the attributes of base_data_type string.
-- `required_msg` (String) When the flag required is set to true the required_msg must be provided. required_msg is shown if user does not provide a required field.
+- `required_msg` (String) Message shown when the field is required but empty. Must be provided when `required` is true. May also be set when `required` is false to pre-define translations for fields marked required at the application level.
 
 <a id="nestedatt--local_texts--attributes"></a>
 ### Nested Schema for `local_texts.attributes`
@@ -132,6 +133,7 @@ Optional:
 
 - `initial_date` (String) The initial date. Applicable only for DATE attributes. Example format: `2024-06-28T18:30:00Z`.
 - `initial_date_view` (String) The view of the calender. Applicable only for DATE attributes. Allowed values: `month`, `year` and `multi-year`
+- `match_with` (String) The `field_key` of another field whose value this field must match (e.g. password confirmation). Only allowed when `field_key` is `password_echo`.
 - `max_date` (String) The maximum date a user can select. Applicable only for DATE attributes. Example format: `2024-06-28T18:30:00Z`.
 - `max_length` (Number) The maximum length of a string type attribute.
 - `min_date` (String) The earliest date a user can select. Applicable only for DATE attributes. Example format: `2024-06-28T18:30:00Z`.
