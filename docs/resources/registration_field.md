@@ -76,7 +76,7 @@ resource "cidaas_registration_field" "text" {
 - `internal` (Boolean) Flag to mark if a field is internal. Defaults set to `false`
 - `is_list` (Boolean)
 - `is_searchable` (Boolean) Flag to mark if a field is searchable. Defaults set to `true`
-- `order` (Number) The display order of the field in the registration UI. When omitted, the API assigns an order.
+- `order` (Number) The display order of the field in the registration UI. When omitted on create, fieldsetup-srv assigns the next available order. Changing `order` on an existing field uses the fieldsetup-srv reorder API (`PATCH /fieldsetup-srv/fields/order`) before other updates are applied; upsert alone does not change order.
 - `overwrite_with_null_value_from_social_provider` (Boolean) Set to true if you want the value should be reset by identity provider. Defaults set to `false`
 - `parent_group_id` (String) The ID of the parent registration group. Defaults to `DEFAULT` if not provided.
 - `read_only` (Boolean) Flag to mark if a field is read only. Defaults set to `false`
